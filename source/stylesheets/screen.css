@@ -1,0 +1,16 @@
+main h1 {
+    font-size: 3em;
+}
+
+.social-icon {
+    padding: 0 2vw;
+}
+
+.social-icon img {
+    width: 3vw;
+}
+
+#social-links {
+    display: flex;
+    justify-content: space-between;
+}

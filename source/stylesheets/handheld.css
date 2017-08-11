@@ -1,0 +1,23 @@
+body {
+    background-color: #E1E5E8;
+}
+
+main h1 {
+    font-family: "Roboto";
+    text-align: center;
+}
+
+.social-icon img {
+    padding: 1vh;
+    width: 10vw;
+    vertical-align: middle;
+}
+
+.social-icon span {
+    font-family: "Open Sans";
+    vertical-align: middle;
+}
+
+#social-links a:link {
+    text-decoration: none;
+}
