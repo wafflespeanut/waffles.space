@@ -1,5 +1,5 @@
 main {
-    padding: 0 5.5vw;
+    padding: 0 5.5vw 5vh 5.5vw;
 }
 
 main h1 {
@@ -8,6 +8,10 @@ main h1 {
 
 section h2 {
     font-size: 2vw;
+}
+
+section h3 {
+    padding-left: 1vw;
 }
 
 span,strong {
@@ -28,8 +32,28 @@ span,strong {
     justify-content: left;
 }
 
+.sub-section div > *, .sub-section ul {
+    font-size: 2.5vh;
+}
+
+.summary-bullet {
+    margin:
+}
+
+.summary-bullet > li > .summary-bullet {
+    padding: 0 1vw;
+}
+
 .timespan {
     margin-left: 2%;
+}
+
+#projects {
+    padding: 0 0.5vw;
+}
+
+#projects > li {
+    padding-bottom: 1vh;
 }
 
 #social-links {

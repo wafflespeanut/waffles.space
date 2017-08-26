@@ -12,7 +12,7 @@
     <link rel="stylesheet" media="only screen" href="stylesheets/handheld.css" type="text/css" />
     <link rel="stylesheet" media="only screen and (min-width: 700px)" href="stylesheets/screen.css" type="text/css" />
     <link rel="icon" type="image/png" href="icons/favicon.png" />
-    <title>Portfolio</title>
+    <title>Resume</title>
 </head>
 <body>
     <main>
@@ -100,7 +100,7 @@
                     <li>Active contributor and <a href="https://blog.servo.org/2016/01/11/twis-47/">reviewer</a> for the <a href="https://github.com/servo/servo">Servo browser engine project</a>, primarily concentrating on the style system, python-based build system, and mentoring newcomers.</li>
                     <li>Apart from helping folks in IRC and Github issues, I've authored <a href="https://github.com/servo/servo/commits?author=wafflespeanut">more than 100 commits</a> and reviewed <a href="https://github.com/servo/servo/pulls?q=is:pr+assignee:wafflespeanut+is:closed">more than 200 pull requests</a>.</li>
                     <li>Implemented code for parsing and serialization of CSS <code>grid</code> shorthand and longhand properties.</li>
-                    <li>Wrote various <a href="https://github.com/servo/highfive/commits?author=wafflespeanut">handlers</a> for <a href="https://github.com/servo/highfive">highfive</a> (a bot that responds to Github webhook payloads by welcoming newcomers, assign/tag issues and pull requests, post build failures, etc.) and a "mark and sweep" <a href="https://github.com/servo/highfive/pull/115">JSON cleaner</a> for its tests.</li>
+                    <li>Wrote <a href="https://github.com/servo/highfive/commits?author=wafflespeanut">handlers</a> for <a href="https://github.com/servo/highfive">highfive</a> (a bot that responds to Github webhook payloads by welcoming newcomers, assign/tag issues and pull requests, post build failures, etc.) and a "mark and sweep" <a href="https://github.com/servo/highfive/pull/115">JSON cleaner</a> for its tests.</li>
                     <li>Created a <a href="https://github.com/servo-automation/servo-wpt">watcher</a> that tests Servo builds in a dedicated machine, analyzes the logs, maintains a database of "rr" recordings of intermittent failures, and uses the Github API to file issues or comments to notify the people who work on such issues.</li>
                     <li>Wrote a <a href="https://github.com/wafflespeanut/rust-sorty">compiler plugin</a> for checking sorted order of declaration statements.</li>
                 </ul>
@@ -109,6 +109,50 @@
                     <li>Occassional contributor to the <a href="https://github.com/rust-lang/rust">Rust programming language</a>, its documentation and related tooling.</li>
                     <li><a href="https://mozillians.org/en-US/u/wafflespeanut">Mozillian</a> since the summer of 2015.</li>
                 </ul>
+            </div>
+        </section>
+        <section>
+            <h2>Personal projects:</h2>
+            <ul id="projects">
+                <li>
+                    <a href="https://github.com/servo-automation/highfive"><strong>Highfive: </strong></a>
+                    <span>A Github integration (bot) to provide a friendly welcoming environment for the newcomers to open-source by tracking issues and pull requests, and assigning, labelling or commenting on them (using the Github API).</span>
+                </li>
+                <li>
+                    <a href="https://github.com/wafflespeanut/nucleic-acid"><strong>Nucleic acid: </strong></a>
+                    <span>A Rust library to map short DNA sequence reads to the reference genome. It makes use of suffix array to generate the Burrows-Wheeler transform, from which an FM-index is built and used for finding exact matches in O(1) time.</span>
+                </li>
+                <li>
+                    <a href="https://github.com/wafflespeanut/rust-catalog"><strong>Catalog: </strong></a>
+                    <span>A "file-backed" map written in Rust, for maintaining key/value pairs in a file, which uses binary search and file seeking to "get" the values in O(log-n) time.</span>
+                </li>
+                <li>
+                    <a href="https://github.com/wafflespeanut/biographer"><strong>Biographer: </strong></a>
+                    <span>A command-line based private diary written in Python, which allows users to write their everyday stories, view them, or search through them later. It makes use of a simple shifting cipher to encrypt/decrypt the contents. It also contains a Rust library, which uses FFI and parallelization to reduce the searching time by a factor of ≈100.</span>
+                </li>
+                <li>
+                    <a href="https://github.com/wafflespeanut/free-fall"><strong>Free fall: </strong></a>
+                    <span>A terminal based 2D-ASCII game written in Rust, where the users try to save a jumper from hitting the cliffs. The game makes use of the terminal’s raw mode and interacts with the Unix C libraries for polling the keystroke inputs and prints thousands of characters frame by frame to indicate motion.</span>
+                </li>
+            </ul>
+        </section>
+        <section>
+            <h2>Miscellaneous:</h2>
+            <div class="sub-section">
+                <ul class="summary-bullet">
+                    <li>
+                        <span>I also play with code and make some cool stuff in my free time:</span>
+                        <ul class="summary-bullet">
+                            <li>An <a href="https://ascii-gen.herokuapp.com/">ASCII Art Generator</a> for JPEG/PNG images which <a href="https://blog.waffles.space/2017/03/01/ascii-sketch/">extracts the necessary details</a> for generating the ASCII sketch.</li>
+                            <li>A <a href="https://github.com/wafflespeanut/AISH">CSS injector</a> that slowly injects a stylesheet into a style element in the DOM and gets rendered in realtime.</li>
+                            <li>A <a href="https://github.com/wafflespeanut/flight-2016">responsive website</a> for our college symposium (2016) without the use of any external libraries.</li>
+                        </ul>
+                    </li>
+                    <li>Blogger since 2013 at <a href="https://wafflescrazypeanut.wordpress.com/">wafflescrazypeanut.wordpress.com</a> and now, at <a href="https://blog.waffles.space/">blog.waffles.space</a>.</li>
+                    <li><a href="https://physics.stackexchange.com/users/11062">Contributor and reviewer</a> of posts at Physics Stack Exchange for two years (2013-2015).</li>
+                    <li>I’m also an avid gamer, hobby composer and juggler when I’m AFK.</li>
+                </ul>
+            </div>
         </section>
     </main>
 </body>

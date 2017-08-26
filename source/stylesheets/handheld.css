@@ -1,3 +1,8 @@
+a {
+    text-decoration: none;
+    color: red;
+}
+
 body {
     background-color: ##DDDDDD;
 }
@@ -7,7 +12,7 @@ h1,h2,h3 {
 }
 
 main {
-    padding: 0 2vw;
+    padding: 0 2vw 4vh 2vw;
 }
 
 main h1 {
@@ -16,9 +21,13 @@ main h1 {
 
 section h2 {
     font-size: 3.5vh;
+    margin-top: 4vh;
+    margin-bottom: 1.5vh;
 }
 
 section h3 {
+    margin: 2vh 0;
+    padding-left: 2.5vw;
     font-size: 3vh;
 }
 
@@ -43,15 +52,30 @@ span,strong,div {
     flex-flow: column;
 }
 
-.sub-section div > * {
-    font-size: 2.5vh;
+.sub-section div > *, .sub-section ul {
+    font-size: 2.7vh;
 }
 
 .summary-bullet {
-    margin-top: 1vh;
+    margin: 1vh 0;
     padding-left: 25px;
 }
 
-#social-links a:link {
-    text-decoration: none;
+.summary-bullet > li > .summary-bullet {
+    margin: 0;
+    padding: 0 5vw;
+}
+
+#projects {
+    padding: 0 3vw;
+    margin: 0;
+}
+
+#projects > li {
+    padding-bottom: 2vh;
+    list-style-type: none;
+}
+
+#social-links a {
+    color: blue;
 }
