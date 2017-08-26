@@ -1,21 +1,55 @@
 body {
-    background-color: #E1E5E8;
+    background-color: ##DDDDDD;
+}
+
+h1,h2,h3 {
+    font-family: "Roboto";
+}
+
+main {
+    padding: 0 2vw;
 }
 
 main h1 {
-    font-family: "Roboto";
     text-align: center;
 }
 
+section h2 {
+    font-size: 3.5vh;
+}
+
+section h3 {
+    font-size: 3vh;
+}
+
+span,strong,div {
+    font-size: 2.75vh;
+    font-family: "Open Sans";
+}
+
 .social-icon img {
-    padding: 1vh;
+    padding: 0.7vh 1vh;
     width: 10vw;
     vertical-align: middle;
 }
 
 .social-icon span {
-    font-family: "Open Sans";
     vertical-align: middle;
+}
+
+.sub-section div {
+    justify-content: space-between;
+    display: flex;
+    flex-flow: column;
+}
+
+.sub-section div > * {
+    font-size: 2.5vh;
+}
+
+.summary-bullet {
+    margin-top: 1vh;
+    padding-left: 25px;
 }
 
 #social-links a:link {

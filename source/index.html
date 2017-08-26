@@ -14,34 +14,100 @@
 </head>
 <body>
     <main>
-        <h1>Ravi Shankar</h1>
+        <header>
+            <h1>Ravi Shankar</h1>
+        </header>
         <section id="social-links">
-            <a href="mailto:wafflespeanut@gmail.com">
-                <div id="email-icon" class="social-icon">
+            <div id="email-icon" class="social-icon">
+                <a href="mailto:wafflespeanut@gmail.com">
                     <img src="./icons/email.png" />
                     <span>wafflespeanut@gmail.com</span>
-                </div>
-            </a>
-            <a href="https://twitter.com/wafflespeanut">
-                <div id="twitter-icon" class="social-icon">
+                </a>
+            </div>
+            <div id="twitter-icon" class="social-icon">
+                <a href="https://twitter.com/wafflespeanut" target="_blank">
                     <img src="./icons/twitter.png" />
                     <span>@wafflespeanut</span>
-                </div>
-            </a>
-            <a href="https://github.com/wafflespeanut">
-                <div id="github-icon" class="social-icon">
+                </a>
+            </div>
+            <div id="github-icon" class="social-icon">
+                <a href="https://github.com/wafflespeanut" target="_blank">
                     <img src="./icons/github.png" />
                     <span>wafflespeanut</span>
-                </div>
-            </a>
-            <a href="https://in.linkedin.com/in/wafflespeanut">
-                <div id="linkedin-icon" class="social-icon">
+                </a>
+            </div>
+            <div id="linkedin-icon" class="social-icon">
+                <a href="https://in.linkedin.com/in/wafflespeanut" target="_blank">
                     <img src="./icons/linkedin.png" />
                     <span>wafflespeanut</span>
                 </div>
             </a>
         </section>
         <hr />
+        <section>
+            <h2>Programming Skills:</h2>
+            <p>
+                <strong>Languages:</strong>
+                <span>Rust, Python, HTML5, Javascript, CSS, Bash.</span>
+            </p>
+            <p>
+                <strong>Technologies:</strong>
+                <span>Unix (OS X, Ubuntu), Git, Mercurial, Flask, Iron, REST, Docker, Kubernetes, PostgreSQL, Heroku.</span>
+            </p>
+        </section>
+        <section>
+            <h2>Experience:</h2>
+            <div class="sub-section">
+                <strong>Full-stack Developer</strong>
+                <div>
+                    <em>Surematics</em>
+                    <em class="timespan">( June - August, 2017 )</em>
+                </div>
+                <div>
+                    <ul class="summary-bullet">
+                        <li>Contracted for a startup that develops applications for insurance brokers, which participated in the YCombinator summer (S-17) batch.</li>
+                        <li>Wrote code for backend microservices in Rust, laid out the infrastrucure in Kubernetes, and helped with frontend development.</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="sub-section">
+                <strong>Backend Developer</strong>
+                <div>
+                    <em>Genome Life Sciences</em>
+                    <em class="timespan">( January, 2016 - Present )</em>
+                </div>
+                <div>
+                    <ul class="summary-bullet">
+                        <li>Wrote utilities in Rust for bulk parallel processing of chromosome and DNA sequence data in FASTQ, SAM and VCF file formats.</li>
+                        <li>
+                            <em>Notable tools:</em>
+                            <ul class="summary-bullet">
+                                <li>A species finder which takes DNA sequence(s) and finds known species in O(1) time.</li>
+                                <li>A sequence aligner which uses Burrows-Wheeler transform and FM-index to backtrack and map DNA sequences to the reference genome in O(n) time.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+        <section>
+            <h2>Open source contributions:</h2>
+            <div class="sub-section">
+                <h3>Servo</h3>
+                <ul class="summary-bullet">
+                    <li>Active contributor and <a href="https://blog.servo.org/2016/01/11/twis-47/">reviewer</a> for the <a href="https://github.com/servo/servo">Servo browser engine project</a>, primarily concentrating on the style system, python-based build system, and mentoring newcomers.</li>
+                    <li>Apart from helping folks in IRC and Github issues, I've authored <a href="https://github.com/servo/servo/commits?author=wafflespeanut">more than 100 commits</a> and reviewed <a href="https://github.com/servo/servo/pulls?q=is:pr+assignee:wafflespeanut+is:closed">more than 200 pull requests</a>.</li>
+                    <li>Implemented code for parsing and serialization of CSS <code>grid</code> shorthand and longhand properties.</li>
+                    <li>Wrote various <a href="https://github.com/servo/highfive/commits?author=wafflespeanut">handlers</a> for <a href="https://github.com/servo/highfive">highfive</a> (a bot that responds to Github webhook payloads by welcoming newcomers, assign/tag issues and pull requests, post build failures, etc.) and a "mark and sweep" <a href="https://github.com/servo/highfive/pull/115">JSON cleaner</a> for its tests.</li>
+                    <li>Created a <a href="https://github.com/servo-automation/servo-wpt">watcher</a> that tests Servo builds in a dedicated machine, analyzes the logs, maintains a database of "rr" recordings of intermittent failures, and uses the Github API to file issues or comments to notify the people who work on such issues.</li>
+                    <li>Wrote a <a href="https://github.com/wafflespeanut/rust-sorty">compiler plugin</a> for checking sorted order of declaration statements.</li>
+                </ul>
+                <h3>Other</h3>
+                <ul class="summary-bullet">
+                    <li>Occassional contributor to the <a href="https://github.com/rust-lang/rust">Rust programming language</a>, its documentation and related tooling.</li>
+                    <li><a href="https://mozillians.org/en-US/u/wafflespeanut">Mozillian</a> since the summer of 2015.</li>
+                </ul>
+        </section>
     </main>
 </body>
 </html>

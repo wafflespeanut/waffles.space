@@ -1,13 +1,35 @@
+main {
+    padding: 0 5.5vw;
+}
+
 main h1 {
-    font-size: 3em;
+    font-size: 3vw;
+}
+
+section h2 {
+    font-size: 2vw;
+}
+
+span,strong {
+    font-size: 1.25vw;
 }
 
 .social-icon {
-    padding: 0 2vw;
+    padding: 0 1vw;
 }
 
 .social-icon img {
     width: 3vw;
+    height: 3vw;
+}
+
+.sub-section div {
+    flex-flow: row;
+    justify-content: left;
+}
+
+.timespan {
+    margin-left: 2%;
 }
 
 #social-links {
