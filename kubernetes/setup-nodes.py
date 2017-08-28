@@ -47,6 +47,65 @@ subjectAltName = @alt_names
 [alt_names]
 IP.1 = {WorkerIP}'''
 
+def run_command(cmd):
+    # print '\033[95m' + ' '.join(cmd) + '\033[0m'
+    with open(os.devnull, 'w') as devnull:
+        return subprocess.check_output(cmd, stderr=devnull)
+
+
+class KubernetesCertificateProvider(object):
+    def __init__(self, path):
+        if not os.path.isdir(path):
+            os.makedirs(path)
+        self.path = path
+
+    def generate_paths_for_cert(self, prefix):
+        return (os.path.join(self.path, '%s-key.pem' % prefix),
+                os.path.join(self.path, '%s.csr' % prefix),
+                os.path.join(self.path, '%s.pem' % prefix),
+                os.path.join(self.path, '%s.cnf' % prefix))
+
+    def generate_private_key(self, path):
+        print '\nGenerating private key...'
+        run_command(['openssl', 'genrsa', '-out', path, '2048'])
+
+    def create_root_ca(self):
+        self.ca_key, _, self.ca_cert, _ = self.generate_paths_for_cert('ca')
+        self.generate_private_key(self.ca_key)
+        print 'Generating CA root certificate...'
+        run_command(['openssl', 'req', '-x509', '-new', '-nodes',
+                     '-key', self.ca_key, '-days', '10000', '-out', self.ca_cert,
+                     '-subj', '/CN=kube-ca'])
+
+    def create_signed_key_pair(self, prefix, config=None, cert_expiry_days=365):
+        priv_key_path, cert_path, signed_path, conf_path = \
+            self.generate_paths_for_cert(prefix)
+        if config is not None:
+            with open(conf_path, 'w') as fd:
+                fd.write(config)
+
+        self.generate_private_key(priv_key_path)
+        print 'Generating certificate for %s...' % prefix
+        cmd = ['openssl', 'req', '-new', '-key', priv_key_path,
+               '-out', cert_path, '-subj', '/CN=%s' % prefix]
+        if config is not None:
+            cmd.extend(['-config', conf_path])
+        run_command(cmd)
+
+        print 'Signing the certificate with CA private key...'
+        cmd = ['openssl', 'x509', '-req', '-in', cert_path, '-CA', self.ca_cert,
+               '-CAkey', self.ca_key, '-CAcreateserial', '-out', signed_path,
+               '-days', str(cert_expiry_days)]
+        if config is not None:
+            cmd.extend(['-extensions', 'v3_req', '-extfile', conf_path])
+
+        run_command(cmd)
+        if config is not None:
+            os.remove(conf_path)
+
+        return priv_key_path, cert_path, signed_path
+
+
 class DigitalOceanKubeRunner(object):
     root_url = 'https://api.digitalocean.com/v2'
     ssh_url = root_url + '/account/keys'
@@ -60,12 +119,12 @@ class DigitalOceanKubeRunner(object):
         self.config = config
         self.headers['Authorization'] = 'Bearer %s' % config['api-token']
         public_key_path = os.path.expanduser(config['ssh-key-path'])
-        self.certs_path = os.path.expanduser(self.config['certs-path'])
-        if not os.path.exists(self.certs_path):
-            os.makedirs(self.certs_path)
-
         with open(public_key_path, 'r') as fd:
             self.pkey = fd.read().strip()
+
+        certs_path = os.path.expanduser(self.config['certs-path'])
+        self.cert_provider = KubernetesCertificateProvider(certs_path)
+        self.cert_provider.create_root_ca()
 
     def node_creation_request(self, name, region, size, ssh_key_id):
         return {
@@ -122,6 +181,10 @@ class DigitalOceanKubeRunner(object):
         data = self._request('GET', self.droplet_url)
         self.droplets = data['droplets']
 
+    def get_public_ip_for_droplet(self, node_data):
+        ip = filter(lambda ip: ip['type'] == 'public', node_data['networks']['v4'])
+        return ip[0]['ip_address']
+
     def get_or_create_node(self, ssh_key_id, node, node_id=0):
         size = self.config['size']
         regions = filter(lambda r: size in r['sizes'], self.regions)
@@ -151,99 +214,36 @@ class DigitalOceanKubeRunner(object):
         self.droplets.append(data['droplet'])
         return data['droplet']
 
-    def run_command(self, cmd):
-        with open(os.devnull, 'w') as devnull:
-            return subprocess.check_output(cmd, stderr=devnull)
-
     def run_command_in_node(self, node_ip, cmd):
-        return self.run_command(['ssh', '-o',
-                                 'StrictHostKeyChecking no',
-                                 'core@%s' % node_ip, cmd])
+        return run_command(['ssh', '-o',
+                            'StrictHostKeyChecking no',
+                            'core@%s' % node_ip, cmd])
 
     # FIXME:
     # - We need a 3-node etcd cluster.
     # - etcd communication should be secure.
-    def run_etcd_cluster_in_node(self, node_data):
-        ip = filter(lambda ip: ip['type'] == 'public', node_data['networks']['v4'])
-        pub_ip = ip[0]['ip_address']
-        print '\nChecking etcd cluster in %s...' % pub_ip
-
+    def run_etcd_cluster_in_node(self, host_ip):
         try:
-            resp = requests.get("http://%s:2379/version" % pub_ip)
+            print '\nChecking etcd cluster in %s...' % host_ip
+            resp = requests.get("http://%s:2379/version" % host_ip)
             if resp.status_code >= 200 and resp.status_code < 300:
                 print 'Note: etcd cluster exists in node.'
             else:
                 raise Exception
         except Exception:
             print 'Launching new etcd cluster...'
-            print self.run_command_in_node(pub_ip, DOCKER_ETCD_COMMAND.format(HostIP=pub_ip))
+            print self.run_command_in_node(host_ip, DOCKER_ETCD_COMMAND.format(HostIP=pub_ip))
 
-        return pub_ip
+    def create_api_server_key_pair(self, host_ip):
+        config = API_CONF.format(HostIP=host_ip, ServiceIP=DEFAULT_SERVICE_IP)
+        return self.cert_provider.create_signed_key_pair('kube-apiserver', config)
 
-    def generate_paths_for_cert(self, prefix):
-        return (os.path.join(self.certs_path, '%s-key.pem' % prefix),
-                os.path.join(self.certs_path, '%s.csr' % prefix),
-                os.path.join(self.certs_path, '%s.pem' % prefix),
-                os.path.join(self.certs_path, '%s.cnf' % prefix))
+    def create_worker_key_pair(self, worker_fqdn, worker_ip):
+        config = WORKER_CONF.format(WorkerIP=worker_ip)
+        return self.cert_provider.create_signed_key_pair(worker_fqdn, config)
 
-    def create_root_ca(self):
-        priv_key_path, _, root_cert_path, _ = self.generate_paths_for_cert('ca')
-        print '\nGenerating CA private key...'
-        self.run_command(['openssl', 'genrsa', '-out', priv_key_path, '2048'])
-        print 'Generating CA root certificate...'
-        self.run_command(['openssl', 'req', '-x509', '-new', '-nodes',
-                          '-key', priv_key_path, '-days', '10000', '-out', root_cert_path,
-                          '-subj', '/CN=kube-ca'])
-        return priv_key_path, root_cert_path
-
-    def create_api_server_key_pair(self, host_ip, ca_priv_key, root_cert):
-        priv_key_path, cert_path, signed_path, conf_path = \
-            self.generate_paths_for_cert('apiserver')
-        with open(conf_path, 'w') as fd:
-            fd.write(API_CONF.format(HostIP=host_ip, ServiceIP=DEFAULT_SERVICE_IP))
-
-        print '\nGenerating private key for API server...'
-        self.run_command(['openssl', 'genrsa', '-out', priv_key_path, '2048'])
-        print 'Generating certificate for API server...'
-        self.run_command(['openssl', 'req', '-new', '-key', priv_key_path, '-out', cert_path,
-                          '-subj', '/CN=kube-apiserver', '-config', conf_path])
-        print 'Signing the certificate with CA private key...'
-        self.run_command(['openssl', 'x509', '-req', '-in', cert_path, '-CA', root_cert,
-                          '-CAkey', ca_priv_key, '-CAcreateserial', '-out', signed_path,
-                          '-days', '365', '-extensions', 'v3_req', '-extfile', conf_path])
-        os.remove(conf_path)
-        return priv_key_path, cert_path, signed_path
-
-    def create_worker_key_pair(self, worker_fqdn, worker_ip, ca_priv_key, root_cert):
-        priv_key_path, cert_path, signed_path, conf_path = \
-            self.generate_paths_for_cert(worker_fqdn)
-        with open(conf_path, 'w') as fd:
-            fd.write(WORKER_CONF.format(WorkerIP=worker_ip))
-
-        print '\nGenerating private key for %s...' % worker_fqdn
-        self.run_command(['openssl', 'genrsa', '-out', priv_key_path, '2048'])
-        print 'Generating certificate for %s...' % worker_fqdn
-        self.run_command(['openssl', 'req', '-new', '-key', priv_key_path, '-out', cert_path,
-                          '-subj', '/CN=%s' % worker_fqdn, '-config', conf_path])
-        print 'Signing the certificate with CA private key...'
-        self.run_command(['openssl', 'x509', '-req', '-in', cert_path, '-CA', root_cert,
-                          '-CAkey', ca_priv_key, '-CAcreateserial', '-out', signed_path,
-                          '-days', '365', '-extensions', 'v3_req', '-extfile', conf_path])
-        os.remove(conf_path)
-        return priv_key_path, cert_path, signed_path
-
-    def create_admin_key_pair(self, ca_priv_key, root_cert):
-        priv_key_path, cert_path, signed_path, _ = self.generate_paths_for_cert('admin')
-        print '\nGenerating private key for admin...'
-        self.run_command(['openssl', 'genrsa', '-out', priv_key_path, '2048'])
-        print 'Generating certificate for admin...'
-        self.run_command(['openssl', 'req', '-new', '-key', priv_key_path, '-out', cert_path,
-                          '-subj', '/CN=kube-admin'])
-        print 'Signing the certificate with CA private key...'
-        self.run_command(['openssl', 'x509', '-req', '-in', cert_path, '-CA', root_cert,
-                          '-CAkey', ca_priv_key, '-CAcreateserial', '-out', signed_path,
-                          '-days', '365'])
-        return priv_key_path, cert_path, signed_path
+    def create_admin_key_pair(self):
+        return self.cert_provider.create_signed_key_pair('kube-admin')
 
     def deploy_nodes(self):
         ssh_key_id = self.create_or_use_public_key()
@@ -251,17 +251,15 @@ class DigitalOceanKubeRunner(object):
         self.get_droplets()
 
         master = self.get_or_create_node(ssh_key_id, 'master')
-        pub_ip = self.run_etcd_cluster_in_node(master)
-        ca_key, ca_cert = self.create_root_ca()
-        api_key, api_cert, api_signed = self.create_api_server_key_pair(pub_ip, ca_key, ca_cert)
+        master_ip = self.get_public_ip_for_droplet(master)
+        self.run_etcd_cluster_in_node(master_ip)
+        api_key, api_cert, api_signed = self.create_api_server_key_pair(master_ip)
 
         # FIXME: Support multiple workers
         worker = self.get_or_create_node(ssh_key_id, 'worker')
-        ip = filter(lambda ip: ip['type'] == 'public', worker['networks']['v4'])
-        worker_ip = ip[0]['ip_address']
-        worker_key, worker_cert, worker_signed = \
-            self.create_worker_key_pair(worker['name'], worker_ip, ca_key, ca_cert)
-        admin_key, admin_cert, admin_signed = self.create_admin_key_pair(ca_key, ca_cert)
+        worker_ip = self.get_public_ip_for_droplet(worker)
+        worker_key, worker_cert, worker_signed = self.create_worker_key_pair(worker['name'], worker_ip)
+        admin_key, admin_cert, admin_signed = self.create_admin_key_pair()
 
 if __name__ == '__main__':
     parser = ArgumentParser(description='Deploy kubernetes in Digital Ocean.')
