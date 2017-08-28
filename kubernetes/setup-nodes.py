@@ -1,4 +1,4 @@
-import getpass, json, os, requests, subprocess, time
+import getpass, json, os, requests, subprocess, time, urllib2
 
 from argparse import ArgumentParser
 
@@ -46,6 +46,10 @@ subjectAltName = @alt_names
 [alt_names]
 IP.1 = {WorkerIP}'''
 
+SHELL_REPLACEMENTS = {}
+MASTER_SCRIPT_URL = 'https://github.com/coreos/coreos-kubernetes/raw/master/multi-node/generic/controller-install.sh'
+WORKER_SCRIPT_URL = 'https://github.com/coreos/coreos-kubernetes/raw/master/multi-node/generic/worker-install.sh'
+
 def run_command(cmd):
     # print '\033[95m' + ' '.join(cmd) + '\033[0m'
     with open(os.devnull, 'w') as devnull:
@@ -86,7 +90,7 @@ class KubernetesCertificateProvider(object):
         self.generate_private_key(priv_key_path)
         print 'Generating certificate for %s...' % prefix
         cmd = ['openssl', 'req', '-new', '-key', priv_key_path,
-               '-out', cert_path, '-subj', '/CN=%s' % prefix]
+               '-out', cert_path, '-subj', '/CN=kube-%s' % prefix]
         if config is not None:
             cmd.extend(['-config', conf_path])
         run_command(cmd)
@@ -102,7 +106,7 @@ class KubernetesCertificateProvider(object):
         if config is not None:
             os.remove(conf_path)
 
-        return priv_key_path, cert_path, signed_path
+        return priv_key_path, signed_path
 
 
 class DigitalOceanKubeRunner(object):
@@ -193,6 +197,7 @@ class DigitalOceanKubeRunner(object):
 
         region = regions[0]['slug']
         name = 'coreos-%s-%s-%s' % (node, node_id, region)
+        print '\nLooking for droplet %s...' % name
         droplet = filter(lambda d: d['name'] == name, self.droplets)
         status = None
 
@@ -229,7 +234,7 @@ class DigitalOceanKubeRunner(object):
     def send_files_to_node_home(self, node_ip, *files):
         cmd = ['scp', '-o', 'StrictHostKeyChecking=no']
         cmd.extend(files)
-        print 'Sending %s to %s...' % (', '.join(files), node_ip)
+        print 'Sending %s file(s) to %s...' % (len(files), node_ip)
         cmd.append('core@%s:~' % node_ip)
         return run_command(cmd)
 
@@ -250,16 +255,52 @@ class DigitalOceanKubeRunner(object):
 
     def create_api_server_key_pair(self, host_ip):
         config = API_CONF.format(HostIP=host_ip, ServiceIP=DEFAULT_SERVICE_IP)
-        return self.cert_provider.create_signed_key_pair('kube-apiserver', config)
+        return self.cert_provider.create_signed_key_pair('apiserver', config)
 
     def create_worker_key_pair(self, worker_fqdn, worker_ip):
         config = WORKER_CONF.format(WorkerIP=worker_ip)
         return self.cert_provider.create_signed_key_pair(worker_fqdn, config)
 
     def create_admin_key_pair(self):
-        return self.cert_provider.create_signed_key_pair('kube-admin')
+        return self.cert_provider.create_signed_key_pair('admin')
 
-    def deploy_nodes(self):
+    def configure_kubectl(self, master_ip):
+        admin_key, admin_cert = self.create_admin_key_pair()
+        run_command(['kubectl', 'config', 'set-cluster', 'default-cluster',
+                     '--server=https://%s' % master_ip,
+                     '--certificate-authority=%s' % self.cert_provider.ca_cert])
+        run_command(['kubectl', 'config', 'set-credentials', 'default-admin',
+                     '--certificate-authority=%s' % self.cert_provider.ca_cert,
+                     '--client-key=%s' % admin_key, '--client-certificate=%s' % admin_cert])
+        run_command(['kubectl', 'config', 'set-context', 'default-system',
+                     '--cluster=default-cluster', '--user=default-admin'])
+        run_command(['kubectl', 'config', 'use-context', 'default-system'])
+        print 'kubectl is now configured to use the cluster.'
+
+    def set_certs_in_node(self, node_ip):
+        self.run_command_in_node(node_ip, 'sudo mv /home/core/*.pem %s' % self.machine_cert_path)
+        self.run_command_in_node(node_ip, 'sudo chmod 600 %s' % os.path.join(self.machine_cert_path, '*-key.pem'))
+        self.run_command_in_node(node_ip, 'sudo chown root:root %s' % os.path.join(self.machine_cert_path, '*-key.pem'))
+
+    def execute_script_in_node(self, host_ip, url):
+        lines = urllib2.urlopen(url).readlines()
+        for i, line in enumerate(lines):
+            line = line.strip()
+            if line.startswith('export ') and line.endswith('='):
+                var = line.split(' ')[1][:-1]
+                lines[i] = 'export %s=%s\n' % (var, SHELL_REPLACEMENTS[var])
+
+        script_path = '/tmp/init_script.sh'
+        with open(script_path, 'w') as fd:
+            fd.writelines(lines)
+
+        self.send_files_to_node_home(host_ip, script_path)
+        script_path = '/home/core/init_script.sh'
+        self.run_command_in_node(host_ip, 'chmod +x %s' % script_path)
+        print 'Executing %s in %s...' % (script_path, host_ip)
+        self.run_command_in_node(host_ip, 'sudo ' + script_path)
+
+    def deploy_nodes(self, override=False):
         ssh_key_id = self.create_or_use_public_key()
         self.get_regions()
         self.get_droplets()
@@ -268,22 +309,26 @@ class DigitalOceanKubeRunner(object):
         master = self.get_or_create_node(ssh_key_id, 'master')
         master_ip = self.get_public_ip_for_droplet(master)
         self.run_etcd_cluster_in_node(master_ip)
-        api_key, api_cert, api_signed = self.create_api_server_key_pair(master_ip)
-        self.run_command_in_node(master_ip, 'sudo mkdir -p %s' % self.machine_cert_path)
-        self.send_files_to_node_home(master_ip, self.cert_provider.ca_cert, api_key, api_signed)
-        self.run_command_in_node(master_ip, 'sudo mv /home/core/*.pem %s' % self.machine_cert_path)
+        SHELL_REPLACEMENTS['ETCD_ENDPOINTS'] = 'http://%s:2379' % master_ip
+        SHELL_REPLACEMENTS['CONTROLLER_ENDPOINT'] = 'https://%s:8080' % master_ip
 
-        print
+        api_key, api_cert = self.create_api_server_key_pair(master_ip)
+        self.run_command_in_node(master_ip, 'sudo mkdir -p %s' % self.machine_cert_path)
+        self.send_files_to_node_home(master_ip, self.cert_provider.ca_cert, api_key, api_cert)
+        self.set_certs_in_node(master_ip)
+        self.execute_script_in_node(master_ip, MASTER_SCRIPT_URL)
 
         # FIXME: Support multiple workers
         worker = self.get_or_create_node(ssh_key_id, 'worker')
         worker_ip = self.get_public_ip_for_droplet(worker)
-        worker_key, worker_cert, worker_signed = self.create_worker_key_pair(worker['name'], worker_ip)
+        worker_key, worker_cert = self.create_worker_key_pair(worker['name'], worker_ip)
         self.run_command_in_node(worker_ip, 'sudo mkdir -p %s' % self.machine_cert_path)
-        self.send_files_to_node_home(worker_ip, self.cert_provider.ca_cert, worker_key, worker_signed)
-        self.run_command_in_node(worker_ip, 'sudo mv /home/core/*.pem %s' % self.machine_cert_path)
+        self.send_files_to_node_home(worker_ip, self.cert_provider.ca_cert, worker_key, worker_cert)
+        self.set_certs_in_node(worker_ip)
+        self.execute_script_in_node(worker_ip, WORKER_SCRIPT_URL)
 
-        admin_key, admin_cert, admin_signed = self.create_admin_key_pair()
+        self.configure_kubectl(master_ip)
+
 
 if __name__ == '__main__':
     parser = ArgumentParser(description='Deploy kubernetes in Digital Ocean.')
@@ -295,4 +340,4 @@ if __name__ == '__main__':
         config = json.load(fd)
 
     runner = DigitalOceanKubeRunner(config)
-    runner.deploy_nodes()
+    runner.deploy_nodes(override=True)
