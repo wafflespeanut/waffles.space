@@ -17,7 +17,6 @@ DOCKER_ETCD_COMMAND = \
  -initial-cluster etcd0=http://{HostIP}:2380 \
  -initial-cluster-state new'''
 
-# FIXME: Support multiple master nodes (HA configuration)
 API_CONF = \
 '''[req]
 req_extensions = v3_req
@@ -111,6 +110,7 @@ class DigitalOceanKubeRunner(object):
     ssh_url = root_url + '/account/keys'
     region_url = root_url + '/regions'
     droplet_url = root_url + '/droplets'
+    machine_cert_path = '/etc/kubernetes/ssl/'
     headers = {
         'Content-Type': 'application/json'
     }
@@ -194,15 +194,21 @@ class DigitalOceanKubeRunner(object):
         region = regions[0]['slug']
         name = 'coreos-%s-%s-%s' % (node, node_id, region)
         droplet = filter(lambda d: d['name'] == name, self.droplets)
+        status = None
+
         if droplet:
             print 'Re-using existing droplet...'
-            return droplet[0]
-
-        payload = self.node_creation_request(name, region, size, ssh_key_id)
-        print 'Creating droplet %s with size %s...' % (name, size)
-        data = self._request('POST', self.droplet_url, payload)
-        droplet_id = data['droplet']['id']
-        status = data['droplet']['status']
+            droplet_id = droplet[0]['id']
+            url = self.droplet_url + '/%s/actions' % droplet_id
+            self._request('POST', url, {
+                'type': 'rebuild',
+                'image': 'coreos-stable'
+            })
+        else:
+            payload = self.node_creation_request(name, region, size, ssh_key_id)
+            print 'Creating droplet %s with size %s...' % (name, size)
+            data = self._request('POST', self.droplet_url, payload)
+            droplet_id = data['droplet']['id']
 
         print 'Waiting for droplet...'
         url = self.droplet_url + '/' + str(droplet_id)
@@ -211,13 +217,21 @@ class DigitalOceanKubeRunner(object):
             data = self._request('GET', url)
             status = data['droplet']['status']
 
-        self.droplets.append(data['droplet'])
+        if not droplet:
+            self.droplets.append(data['droplet'])
         return data['droplet']
 
     def run_command_in_node(self, node_ip, cmd):
         return run_command(['ssh', '-o',
-                            'StrictHostKeyChecking no',
+                            'StrictHostKeyChecking=no',
                             'core@%s' % node_ip, cmd])
+
+    def send_files_to_node_home(self, node_ip, *files):
+        cmd = ['scp', '-o', 'StrictHostKeyChecking=no']
+        cmd.extend(files)
+        print 'Sending %s to %s...' % (', '.join(files), node_ip)
+        cmd.append('core@%s:~' % node_ip)
+        return run_command(cmd)
 
     # FIXME:
     # - We need a 3-node etcd cluster.
@@ -232,7 +246,7 @@ class DigitalOceanKubeRunner(object):
                 raise Exception
         except Exception:
             print 'Launching new etcd cluster...'
-            print self.run_command_in_node(host_ip, DOCKER_ETCD_COMMAND.format(HostIP=pub_ip))
+            print self.run_command_in_node(host_ip, DOCKER_ETCD_COMMAND.format(HostIP=host_ip))
 
     def create_api_server_key_pair(self, host_ip):
         config = API_CONF.format(HostIP=host_ip, ServiceIP=DEFAULT_SERVICE_IP)
@@ -250,15 +264,25 @@ class DigitalOceanKubeRunner(object):
         self.get_regions()
         self.get_droplets()
 
+        # FIXME: Support multiple master nodes (HA configuration)
         master = self.get_or_create_node(ssh_key_id, 'master')
         master_ip = self.get_public_ip_for_droplet(master)
         self.run_etcd_cluster_in_node(master_ip)
         api_key, api_cert, api_signed = self.create_api_server_key_pair(master_ip)
+        self.run_command_in_node(master_ip, 'sudo mkdir -p %s' % self.machine_cert_path)
+        self.send_files_to_node_home(master_ip, self.cert_provider.ca_cert, api_key, api_signed)
+        self.run_command_in_node(master_ip, 'sudo mv /home/core/*.pem %s' % self.machine_cert_path)
+
+        print
 
         # FIXME: Support multiple workers
         worker = self.get_or_create_node(ssh_key_id, 'worker')
         worker_ip = self.get_public_ip_for_droplet(worker)
         worker_key, worker_cert, worker_signed = self.create_worker_key_pair(worker['name'], worker_ip)
+        self.run_command_in_node(worker_ip, 'sudo mkdir -p %s' % self.machine_cert_path)
+        self.send_files_to_node_home(worker_ip, self.cert_provider.ca_cert, worker_key, worker_signed)
+        self.run_command_in_node(worker_ip, 'sudo mv /home/core/*.pem %s' % self.machine_cert_path)
+
         admin_key, admin_cert, admin_signed = self.create_admin_key_pair()
 
 if __name__ == '__main__':
