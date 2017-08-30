@@ -50,10 +50,14 @@ SHELL_REPLACEMENTS = {}
 MASTER_SCRIPT_URL = 'https://github.com/coreos/coreos-kubernetes/raw/master/multi-node/generic/controller-install.sh'
 WORKER_SCRIPT_URL = 'https://github.com/coreos/coreos-kubernetes/raw/master/multi-node/generic/worker-install.sh'
 
-def run_command(cmd):
+def run_command(cmd, async=False):
     # print '\033[95m' + ' '.join(cmd) + '\033[0m'
-    with open(os.devnull, 'w') as devnull:
-        return subprocess.check_output(cmd, stderr=devnull)
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if async:
+        return lambda: proc.communicate()[0]
+    else:
+        out, _err = proc.communicate()
+        return out
 
 
 class KubernetesCertificateProvider(object):
@@ -189,7 +193,7 @@ class DigitalOceanKubeRunner(object):
         ip = filter(lambda ip: ip['type'] == 'public', node_data['networks']['v4'])
         return ip[0]['ip_address']
 
-    def get_or_create_node(self, ssh_key_id, node, node_id=0):
+    def get_or_create_node(self, ssh_key_id, node, node_id=0, override=False):
         size = self.config['size']
         regions = filter(lambda r: size in r['sizes'], self.regions)
         if not regions:
@@ -203,6 +207,9 @@ class DigitalOceanKubeRunner(object):
 
         if droplet:
             print 'Re-using existing droplet...'
+            if not override:
+                return droplet[0]
+            # Rebuild the existing droplet
             droplet_id = droplet[0]['id']
             url = self.droplet_url + '/%s/actions' % droplet_id
             self._request('POST', url, {
@@ -226,10 +233,10 @@ class DigitalOceanKubeRunner(object):
             self.droplets.append(data['droplet'])
         return data['droplet']
 
-    def run_command_in_node(self, node_ip, cmd):
+    def run_command_in_node(self, node_ip, cmd, async=False):
         return run_command(['ssh', '-o',
                             'StrictHostKeyChecking=no',
-                            'core@%s' % node_ip, cmd])
+                            'core@%s' % node_ip, cmd], async=async)
 
     def send_files_to_node_home(self, node_ip, *files):
         cmd = ['scp', '-o', 'StrictHostKeyChecking=no']
@@ -244,7 +251,7 @@ class DigitalOceanKubeRunner(object):
     def run_etcd_cluster_in_node(self, host_ip):
         try:
             print '\nChecking etcd cluster in %s...' % host_ip
-            resp = requests.get("http://%s:2379/version" % host_ip)
+            resp = requests.get("http://%s:2379/version" % host_ip, timeout=5)
             if resp.status_code >= 200 and resp.status_code < 300:
                 print 'Note: etcd cluster exists in node.'
             else:
@@ -282,7 +289,7 @@ class DigitalOceanKubeRunner(object):
         self.run_command_in_node(node_ip, 'sudo chmod 600 %s' % os.path.join(self.machine_cert_path, '*-key.pem'))
         self.run_command_in_node(node_ip, 'sudo chown root:root %s' % os.path.join(self.machine_cert_path, '*-key.pem'))
 
-    def execute_script_in_node(self, host_ip, url):
+    def execute_script_in_node(self, host_ip, url, async=False):
         lines = urllib2.urlopen(url).readlines()
         for i, line in enumerate(lines):
             line = line.strip()
@@ -297,8 +304,8 @@ class DigitalOceanKubeRunner(object):
         self.send_files_to_node_home(host_ip, script_path)
         script_path = '/home/core/init_script.sh'
         self.run_command_in_node(host_ip, 'chmod +x %s' % script_path)
-        print 'Executing %s in %s...' % (script_path, host_ip)
-        self.run_command_in_node(host_ip, 'sudo ' + script_path)
+        print 'Launching %s in %s...' % (script_path, host_ip)
+        return self.run_command_in_node(host_ip, 'sudo ' + script_path, async=async)
 
     def deploy_nodes(self, override=False):
         ssh_key_id = self.create_or_use_public_key()
@@ -306,7 +313,7 @@ class DigitalOceanKubeRunner(object):
         self.get_droplets()
 
         # FIXME: Support multiple master nodes (HA configuration)
-        master = self.get_or_create_node(ssh_key_id, 'master')
+        master = self.get_or_create_node(ssh_key_id, 'master', override=override)
         master_ip = self.get_public_ip_for_droplet(master)
         self.run_etcd_cluster_in_node(master_ip)
         SHELL_REPLACEMENTS['ETCD_ENDPOINTS'] = 'http://%s:2379' % master_ip
@@ -316,10 +323,10 @@ class DigitalOceanKubeRunner(object):
         self.run_command_in_node(master_ip, 'sudo mkdir -p %s' % self.machine_cert_path)
         self.send_files_to_node_home(master_ip, self.cert_provider.ca_cert, api_key, api_cert)
         self.set_certs_in_node(master_ip)
-        self.execute_script_in_node(master_ip, MASTER_SCRIPT_URL)
+        master_wait = self.execute_script_in_node(master_ip, MASTER_SCRIPT_URL, async=True)
 
         # FIXME: Support multiple workers
-        worker = self.get_or_create_node(ssh_key_id, 'worker')
+        worker = self.get_or_create_node(ssh_key_id, 'worker', override=override)
         worker_ip = self.get_public_ip_for_droplet(worker)
         worker_key, worker_cert = self.create_worker_key_pair(worker['name'], worker_ip)
         self.run_command_in_node(worker_ip, 'sudo mkdir -p %s' % self.machine_cert_path)
@@ -327,6 +334,8 @@ class DigitalOceanKubeRunner(object):
         self.set_certs_in_node(worker_ip)
         self.execute_script_in_node(worker_ip, WORKER_SCRIPT_URL)
 
+        print 'Waiting for the scripts to finish...'
+        master_wait()
         self.configure_kubectl(master_ip)
 
 
