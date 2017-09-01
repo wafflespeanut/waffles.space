@@ -13,7 +13,7 @@ DOCKER_ETCD_COMMAND = \
  -listen-client-urls http://0.0.0.0:2379,http://0.0.0.0:4001 \
  -initial-advertise-peer-urls http://{HostIP}:2380 \
  -listen-peer-urls http://0.0.0.0:2380 \
- -initial-cluster-token etcd0 \
+ -initial-cluster-token etcd-cluster-1 \
  -initial-cluster etcd0=http://{HostIP}:2380 \
  -initial-cluster-state new'''
 
@@ -206,10 +206,11 @@ class DigitalOceanKubeRunner(object):
         status = None
 
         if droplet:
-            print 'Re-using existing droplet...'
             if not override:
+                print 'Re-using existing droplet...'
                 return droplet[0]
-            # Rebuild the existing droplet
+
+            print 'Rebuilding existing droplet...'
             droplet_id = droplet[0]['id']
             url = self.droplet_url + '/%s/actions' % droplet_id
             self._request('POST', url, {
@@ -284,18 +285,24 @@ class DigitalOceanKubeRunner(object):
         run_command(['kubectl', 'config', 'use-context', 'default-system'])
         print 'kubectl is now configured to use the cluster.'
 
-    def set_certs_in_node(self, node_ip):
+    def set_certs_in_node(self, node_ip, ca_cert, node_priv_key, node_cert):
+        self.send_files_to_node_home(node_ip, ca_cert, node_priv_key, node_cert)
         self.run_command_in_node(node_ip, 'sudo mv /home/core/*.pem %s' % self.machine_cert_path)
         self.run_command_in_node(node_ip, 'sudo chmod 600 %s' % os.path.join(self.machine_cert_path, '*-key.pem'))
         self.run_command_in_node(node_ip, 'sudo chown root:root %s' % os.path.join(self.machine_cert_path, '*-key.pem'))
+        self.run_command_in_node(node_ip, 'sudo ln -s %s %s' % (os.path.join(self.machine_cert_path, os.path.basename(node_priv_key)),
+                                                                os.path.join(self.machine_cert_path, 'worker-key.pem')))
+        self.run_command_in_node(node_ip, 'sudo ln -s %s %s' % (os.path.join(self.machine_cert_path, os.path.basename(node_cert)),
+                                                                os.path.join(self.machine_cert_path, 'worker.pem')))
 
     def execute_script_in_node(self, host_ip, url, async=False):
         lines = urllib2.urlopen(url).readlines()
         for i, line in enumerate(lines):
             line = line.strip()
-            if line.startswith('export ') and line.endswith('='):
-                var = line.split(' ')[1][:-1]
-                lines[i] = 'export %s=%s\n' % (var, SHELL_REPLACEMENTS[var])
+            if line.startswith('export '):
+                var = line.split(' ')[1].split('=')[0]
+                if line.endswith('=') or SHELL_REPLACEMENTS.get(var):
+                    lines[i] = 'export %s=%s\n' % (var, SHELL_REPLACEMENTS[var])
 
         script_path = '/tmp/init_script.sh'
         with open(script_path, 'w') as fd:
@@ -317,12 +324,11 @@ class DigitalOceanKubeRunner(object):
         master_ip = self.get_public_ip_for_droplet(master)
         self.run_etcd_cluster_in_node(master_ip)
         SHELL_REPLACEMENTS['ETCD_ENDPOINTS'] = 'http://%s:2379' % master_ip
-        SHELL_REPLACEMENTS['CONTROLLER_ENDPOINT'] = 'https://%s:8080' % master_ip
+        SHELL_REPLACEMENTS['CONTROLLER_ENDPOINT'] = 'https://%s' % master_ip
 
         api_key, api_cert = self.create_api_server_key_pair(master_ip)
         self.run_command_in_node(master_ip, 'sudo mkdir -p %s' % self.machine_cert_path)
-        self.send_files_to_node_home(master_ip, self.cert_provider.ca_cert, api_key, api_cert)
-        self.set_certs_in_node(master_ip)
+        self.set_certs_in_node(master_ip, self.cert_provider.ca_cert, api_key, api_cert)
         master_wait = self.execute_script_in_node(master_ip, MASTER_SCRIPT_URL, async=True)
 
         # FIXME: Support multiple workers
@@ -330,13 +336,21 @@ class DigitalOceanKubeRunner(object):
         worker_ip = self.get_public_ip_for_droplet(worker)
         worker_key, worker_cert = self.create_worker_key_pair(worker['name'], worker_ip)
         self.run_command_in_node(worker_ip, 'sudo mkdir -p %s' % self.machine_cert_path)
-        self.send_files_to_node_home(worker_ip, self.cert_provider.ca_cert, worker_key, worker_cert)
-        self.set_certs_in_node(worker_ip)
-        self.execute_script_in_node(worker_ip, WORKER_SCRIPT_URL)
+        self.set_certs_in_node(worker_ip, self.cert_provider.ca_cert, worker_key, worker_cert)
 
-        print 'Waiting for the scripts to finish...'
+        print 'Waiting for the script in master node...'
         master_wait()
+        self.execute_script_in_node(worker_ip, WORKER_SCRIPT_URL)
         self.configure_kubectl(master_ip)
+
+        print 'Waiting for nodes to come online...'
+        nodes = [master_ip, worker_ip]
+
+        while nodes:
+            for line in run_command(['kubectl', 'get', 'nodes']).splitlines():
+                node = line.split()[0]
+                if node in nodes:
+                    nodes.remove(node)
 
 
 if __name__ == '__main__':
