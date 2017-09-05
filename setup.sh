@@ -8,8 +8,8 @@ fi
 args=( "-o" "UserKnownHostsFile=/dev/null" "-o" "StrictHostKeyChecking=no" )
 
 ssh "${args[@]}" core@${HostIP} "mkdir -p ~/nginx"
-scp "${args[@]}" $DIR/nginx.conf core@${HostIP}:~/nginx/
-scp "${args[@]}" $DIR/default.conf core@${HostIP}:~/nginx/
+scp "${args[@]}" $DIR/nginx/nginx.conf core@${HostIP}:~/nginx/
+scp "${args[@]}" $DIR/nginx/default.conf core@${HostIP}:~/nginx/
 
 ssh "${args[@]}" core@${HostIP} \
     "docker run --name nginx \
