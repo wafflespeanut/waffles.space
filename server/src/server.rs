@@ -10,7 +10,7 @@ lazy_static! {
     static ref DEFAULT_ADDRESS: String =
         env::var("ADDRESS").unwrap_or(String::from("localhost:8000"));
     static ref SERVE_PATH_ROOT: String =
-        env::var("PATH").unwrap_or(String::from("./source"));
+        env::var("SOURCE").unwrap_or(String::from("./source"));
 }
 
 pub fn start() {
