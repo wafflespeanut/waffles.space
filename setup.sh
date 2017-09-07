@@ -1,5 +1,5 @@
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-ASCII_GEN_ADDR="10.0.0.10"
+ALIAS_ADDR="10.0.0.10"
 
 if [ -z "$HostIP" ]; then
     echo "Please set \$HostIP"
@@ -8,15 +8,24 @@ fi
 
 args=( "-o" "UserKnownHostsFile=/dev/null" "-o" "StrictHostKeyChecking=no" )
 
-echo 'Launching ASCII art generator...'
 # `localhost` and `0.0.0.0` conflicts with docker containers. It's better
 # to alias the IP address (that's what Kubernetes does).
 ssh "${args[@]}" core@${HostIP} \
-    "sudo ifconfig eth0:1 ${ASCII_GEN_ADDR} \
+    "sudo ifconfig eth0:1 ${ALIAS_ADDR} \
      netmask 255.255.255.0 up"
+
+echo 'Launching static file server...'
+ssh "${args[@]}" core@${HostIP} "mkdir -p source"
+ssh "${args[@]}" core@${HostIP} \
+    "docker run --name static \
+        -v ~/source:/source
+        -p ${ALIAS_ADDR}:8000:8000 -d \
+        wafflespeanut/static-server"
+
+echo 'Launching ASCII art generator...'
 ssh "${args[@]}" core@${HostIP} \
     "docker run --name ascii-gen \
-        -p ${ASCII_GEN_ADDR}:80:5000 -d \
+        -p ${ALIAS_ADDR}:5000:5000 -d \
         wafflespeanut/ascii-gen"
 
 echo 'Deploying Nginx proxy...'
