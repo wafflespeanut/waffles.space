@@ -3,6 +3,9 @@ sudo: required
 services:
   - docker
 
+before_install:
+  - sudo chmod -R 777 server
+
 script:
   - cd server
   - docker run --rm -it -v "$(pwd)":/home/rust/src ekidd/rust-musl-builder cargo build --release
