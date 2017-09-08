@@ -4,9 +4,14 @@ extern crate iron;
 #[macro_use] extern crate lazy_static;
 #[macro_use] extern crate log;
 extern crate mount;
+extern crate notify;
+extern crate serde_json;
 extern crate staticfile;
+extern crate uuid;
 
 mod server;
+mod utils;
+mod watcher;
 
 fn main() {
     server::start();

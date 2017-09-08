@@ -10,4 +10,7 @@ iron = "0.5"
 lazy_static = "0.2"
 log = "0.3"
 mount = "0.3"
+notify = "4.0"
+serde_json = "1.0"
 staticfile = "0.4"
+uuid = { version = "0.5", features = ["v4"] }

@@ -41,7 +41,7 @@ scp "${args[@]}" $DIR/nginx/nginx.conf core@${HostIP}:~/nginx/
 scp "${args[@]}" $DIR/nginx/default.conf core@${HostIP}:~/nginx/
 
 execute "docker run --name nginx \
-    -v ~/nginx/nginx.conf:/etc/nginx/nginx.conf:ro \
-    -v ~/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro \
+    -v ~/nginx/nginx.conf:/etc/nginx/nginx.conf \
+    -v ~/nginx/default.conf:/etc/nginx/conf.d/default.conf \
     -p 80:80 -d \
     nginx:1.13-alpine"
