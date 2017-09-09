@@ -1,44 +1,43 @@
 use {serde_json, utils};
 use notify::{DebouncedEvent, RecommendedWatcher, Watcher, RecursiveMode};
-use server::{CONFIG_FILE, SERVE_PATH_ROOT};
+use server::{CONFIG_FILE, PRIVATE_SERVE_PATH};
 use std::collections::HashMap;
 use std::fs::{self, File};
 use std::sync::mpsc::{self, Receiver};
 use std::path::{Component, Path};
+use std::process::Command;
 use std::str::FromStr;
 use std::time::Duration;
 use uuid::Uuid;
 
-#[allow(dead_code)]
 pub struct PrivateWatcher {
     config: HashMap<String, String>,
     root_path: String,
+    reflect_path: String,
     event_receiver: Receiver<DebouncedEvent>,
     watcher: RecommendedWatcher,
 }
 
 impl PrivateWatcher {
-    pub fn new(path: &str) -> PrivateWatcher {
+    pub fn new(path: &str, reflect_path: &str) -> PrivateWatcher {
         let (tx, rx) = mpsc::channel();
-        let mut watcher: RecommendedWatcher =
-            Watcher::new(tx, Duration::from_secs(2)).expect("cannot create watcher");
         utils::create_dir_if_not_exists(path);
-
-        watcher.watch(path, RecursiveMode::Recursive).expect("cannot watch path");
-        info!("Watching {}...", path);
+        utils::create_dir_if_not_exists(reflect_path);
 
         PrivateWatcher {
             config: HashMap::new(),
             root_path: path.to_owned(),
+            reflect_path: reflect_path.to_owned(),
             event_receiver: rx,
-            watcher: watcher,
+            watcher: Watcher::new(tx, Duration::from_secs(2))
+                             .expect("cannot create watcher"),
         }
     }
 
     fn check_private_paths<F>(root: &str, mut call: F)
         where F: FnMut(String, String)          // (token, dir name)
     {
-        let source = Path::new(&*SERVE_PATH_ROOT);
+        let source = Path::new(&*PRIVATE_SERVE_PATH);
         for entry in fs::read_dir(&source).unwrap().filter_map(|e| e.ok()) {
             let path = entry.path();
             if path.is_dir() {
@@ -46,7 +45,7 @@ impl PrivateWatcher {
                 let dir_path = source.join(&token);
                 if Uuid::from_str(&token).is_err() {
                     info!("Removing directory with invalid UUID: {}...", dir_path.display());
-                    fs::remove_dir_all(&dir_path).unwrap();
+                    fs::remove_dir_all(&dir_path).expect("removing invalid dir");
                     continue
                 }
 
@@ -71,10 +70,39 @@ impl PrivateWatcher {
                         }
                     }
                 }
-            } else {
-                error!("{} is not a directory.", path.display());
             }
         }
+    }
+
+    fn initialize(&mut self) {
+        info!("Cleaning up private directory...");
+        if Path::new(&self.reflect_path).exists() {
+            fs::remove_dir_all(&self.reflect_path).expect("initial cleanup");
+        }
+
+        fs::create_dir(&self.reflect_path).expect("creating private source");
+        let source = Path::new(&self.reflect_path).to_owned();
+
+        for entry in fs::read_dir(&self.root_path).unwrap().filter_map(|e| e.ok()) {
+            let name = entry.file_name().to_str().unwrap().to_owned();
+            let id = Uuid::new_v4().hyphenated().to_string();
+            let dir_path = source.join(&id);
+            if !dir_path.exists() {
+                fs::create_dir(&dir_path).expect("private dir creation");
+            }
+
+            let new_path = dir_path.join(&name);
+            info!("Copying {} to {}", entry.path().display(), new_path.display());
+            Command::new("cp")
+                    .args(&["-r", &entry.path().display().to_string(),
+                            &new_path.display().to_string()])
+                    .output().expect("cp");
+        }
+
+        self.reload_config();
+        self.watcher.watch(&self.root_path, RecursiveMode::Recursive)
+                    .expect("cannot watch path");
+        info!("Watching {}...", self.root_path);
     }
 
     /// Load config and check config, source and serve directory.
@@ -90,7 +118,7 @@ impl PrivateWatcher {
             }
         });
 
-        let source = Path::new(&*SERVE_PATH_ROOT);
+        let source = Path::new(&*PRIVATE_SERVE_PATH);
         self.config.retain(|ref parent, token| {
             source.join(token).join(parent).exists()
         });
@@ -114,7 +142,7 @@ impl PrivateWatcher {
 
     /// Reflect source from the given `Path` (which should a sub-path of `SERVE_PATH_ROOT`).
     fn reflect_source(&mut self, path: &Path) {
-        let source = Path::new(&*SERVE_PATH_ROOT);
+        let source = Path::new(&*PRIVATE_SERVE_PATH);
         let rel_path = path.strip_prefix(&self.root_path).unwrap();
         let parent = self.find_head(&rel_path);
         let id = match self.config.get(&parent) {
@@ -153,18 +181,19 @@ impl PrivateWatcher {
     }
 
     pub fn start_watching(&mut self) {
-        self.reload_config();
+        self.initialize();
 
         loop {
-            match self.event_receiver.recv() {
+            let event = self.event_receiver.recv();
+            self.reload_config();
+
+            match event {
                 Ok(DebouncedEvent::Create(ref path)) =>
                     self.reflect_source(path),
                 Ok(DebouncedEvent::Remove(ref path)) =>
                     self.reflect_source(path),
                 _ => (),
             }
-
-            self.reload_config();
         }
     }
 }
