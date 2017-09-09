@@ -184,16 +184,19 @@ impl PrivateWatcher {
         self.initialize();
 
         loop {
-            let event = self.event_receiver.recv();
-            self.reload_config();
-
-            match event {
-                Ok(DebouncedEvent::Create(ref path)) =>
+            match self.event_receiver.recv() {
+                Ok(DebouncedEvent::Create(ref path))
+                | Ok(DebouncedEvent::Remove(ref path))
+                | Ok(DebouncedEvent::Write(ref path)) =>
                     self.reflect_source(path),
-                Ok(DebouncedEvent::Remove(ref path)) =>
-                    self.reflect_source(path),
+                Ok(DebouncedEvent::Rename(ref old_path, ref new_path)) => {
+                    self.reflect_source(old_path);
+                    self.reflect_source(new_path);
+                },
                 _ => (),
             }
+
+            self.reload_config();
         }
     }
 }
