@@ -66,7 +66,7 @@ impl PrivateWatcher {
                             call(token, name);
                         } else {
                             info!("{} not found in source. Removing...", name);
-                            fs::remove_dir_all(&dir_path).unwrap();
+                            fs::remove_dir_all(&dir_path).expect("abandoned cleanup");
                         }
                     }
                 }
@@ -174,7 +174,7 @@ impl PrivateWatcher {
                     fs::remove_dir_all(&new_path).expect("recursive dir deletion");
                 } else {
                     info!("Removing {}", new_path.display());
-                    fs::remove_file(&new_path).expect("");
+                    fs::remove_file(&new_path).expect("file deletion");
                 }
             }
         }

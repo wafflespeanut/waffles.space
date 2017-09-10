@@ -13,9 +13,9 @@ execute() {
 }
 
 echo 'Removing existing images, containers and content...'
-execute 'docker rmi $(docker images -a -q); \
-         docker rm -f $(docker ps -a -q); \
-         rm -rf ~/*'
+execute 'docker rm -f $(docker ps -a -q); \
+         docker rmi $(docker images -a -q); \
+         rm -rf ~/nginx ~/source'
 
 # `localhost` and `0.0.0.0` conflicts with docker containers. It's better
 # to alias the IP address (that's what Kubernetes does).
@@ -26,8 +26,11 @@ echo 'Launching static file server...'
 scp -r "${args[@]}" $DIR/source/ core@${HostIP}:~/
 execute "docker run --name static \
     -v ~/source:/source \
+    -v ~/private:/private \
     -p ${ALIAS_ADDR}:8000:8000 \
-    -e SOURCE=/source -d \
+    -e SOURCE=/source \
+    -e PRIVATE_SOURCE=/private \
+    -e CONFIG=/config.json -d \
     wafflespeanut/static-server"
 
 echo 'Launching ASCII art generator...'
