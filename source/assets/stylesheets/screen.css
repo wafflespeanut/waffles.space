@@ -1,3 +1,9 @@
+#writer {
+  width: 75vw;
+  left: 10vw; top: 15vh;
+  font-size: 1.75vw;
+}
+
 #smiley {
   width: 30vw; height: 30vw;
   margin-top: -10vw;

@@ -6,6 +6,48 @@ main {
   transition: background-color 1.5s;
 }
 
+#writer {
+  width: 90vw;
+  position: absolute;
+  left: 5vw; top: 10vh;
+  font-family: 'Courier New';
+  font-size: 5vw;
+  color: white;
+}
+
+#writer p {
+  margin: 2vh 0;
+}
+
+#writer p:before {
+  content: "> ";
+}
+
+#writer p:after {
+  content: "_";
+  animation: blink 750ms step-end infinite;
+}
+
+#writer p.stop-blink:after {
+  display: none;
+}
+
+#writer p.link {
+  cursor: pointer;
+  color: #EF3636;
+  text-decoration: underline;
+  margin: 2vh 10vw;
+}
+
+#writer p.link:before, #writer p.link:after {
+  display: none;
+}
+
+@keyframes blink {
+  from, to { opacity: 0 }
+  50% { opacity: 1; }
+}
+
 #smiley {
   position: relative;
   width: 40vh; height: 40vh;
