@@ -3,17 +3,20 @@ main {
   top: 0; left: 0;
   width: 100%; height: 100%;
   overflow: hidden;
+  transition: background-color 1.5s;
 }
 
 #smiley {
   position: relative;
-}
-
-#smiley img {
-  width: auto;
+  width: 40vh; height: 40vh;
+  top: 35vh; left: 50vw;
+  margin-top: -10vh;
+  margin-left: -20vh;
+  transition: opacity 1.5s;
 }
 
 #smiley img, #smiley svg {
+  width: 100%;
   position: absolute;
   transition: opacity 2s;
 }

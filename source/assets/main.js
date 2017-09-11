@@ -28,6 +28,7 @@
     }
 
     var div = document.getElementById('smiley');
+    var main = document.getElementsByTagName('main')[0];
     var img = document.createElement('img');
     img.src = 'assets/smiley.png';
 
@@ -40,19 +41,25 @@
 
         var svg = xhr.responseXML.documentElement;
         svg = document.importNode(svg, true);
-        setup_strokes(svg, 25);
         div.appendChild(svg);
         div.appendChild(img);
+        svg.setAttribute('viewBox', '0 0 400 400');
+        setup_strokes(svg, 20);
+
+        function after_draw() {
+            img.style.opacity = 1;
+            svg.style.opacity = 0;
+
+            setTimeout(function() {
+                div.removeChild(svg);
+                div.style.opacity = 0.05;
+                main.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+
+            }, 1000);
+        }
 
         setTimeout(function() {
-            draw_strokes(svg, function() {
-                img.style.opacity = 1;
-                svg.style.opacity = 0;
-
-                setTimeout(function() {
-                    div.removeChild(svg);
-                }, 1000);
-            }, true);
+            draw_strokes(svg, after_draw, true);
         }, 200);
     };
 
