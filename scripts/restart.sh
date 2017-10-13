@@ -1,7 +1,11 @@
 #!/usr/bin/bash
 
-echo 'Removing existing images and containers...'
+echo 'Removing existing containers...'
 docker rm -f $(docker ps -a -q);
-docker rmi $(docker images -a -q);
+
+if [ -z "$KEEP_IMAGES" ]; then
+    echo '... and images.'
+    docker rmi $(docker images -a -q);
+fi
 
 ./start.sh
