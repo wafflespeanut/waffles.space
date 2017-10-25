@@ -9,6 +9,7 @@ extern crate serde_json;
 extern crate staticfile;
 extern crate uuid;
 
+mod custom;
 mod server;
 mod utils;
 mod watcher;
