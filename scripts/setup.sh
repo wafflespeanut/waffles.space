@@ -16,4 +16,5 @@ reclone flight-2016 git://github.com/wafflespeanut/flight-2016
 reclone _site git://github.com/wafflespeanut/waffles.space
 
 cp -r _site/source/* .
+cp -r _site/nginx/* ~/nginx/
 rm -rf _site
