@@ -32,7 +32,7 @@ const TYPE_INTERVAL = 25;
     var div = document.getElementById('smiley');
     var main = document.getElementsByTagName('main')[0];
     var img = document.createElement('img');
-    img.src = 'assets/smiley.png';
+    img.src = 'assets/images/smiley.png';
 
     let lines = [
         "You've been thrown into an abandoned room...",
@@ -54,7 +54,7 @@ const TYPE_INTERVAL = 25;
     ];
 
     var xhr = new XMLHttpRequest();
-    xhr.open('get', 'assets/smiley.svg', true);
+    xhr.open('get', 'assets/images/smiley.svg', true);
     xhr.onreadystatechange = function() {
         if (xhr.readyState != 4) {
             return
