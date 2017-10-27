@@ -8,4 +8,4 @@ if [ -z "$KEEP_IMAGES" ]; then
     docker rmi $(docker images -a -q);
 fi
 
-./start.sh
+/home/core/start.sh

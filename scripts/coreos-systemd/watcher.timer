@@ -1,0 +1,5 @@
+[Unit]
+Description=Run watcher every minute
+
+[Timer]
+OnCalendar=*:0/1

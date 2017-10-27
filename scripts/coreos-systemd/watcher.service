@@ -1,0 +1,6 @@
+[Unit]
+Description=Prints date into /tmp/date file
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/sh -c '/home/core/check.sh'
