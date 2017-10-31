@@ -2,7 +2,7 @@
 
 [![Build Status](https://api.travis-ci.org/wafflespeanut/waffles.space.svg?branch=master)](https://travis-ci.org/Wafflespeanut/waffles.space)
 
-This repo contains the deployment scripts for my website. All my apps are in docker containers, exposed outside through an Nginx proxy (which is also a docker container). I run `HostIp=${IPv4} setup.sh` to deploy them.
+This repo contains the source and deployment scripts for my website. All my apps are in docker containers, exposed outside through an Nginx proxy (which is also a docker container).
 
 ### Future on Kubernetes
 
