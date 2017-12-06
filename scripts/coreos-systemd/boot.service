@@ -1,0 +1,12 @@
+[Unit]
+Description=Server
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+Environment=KEEP_IMAGES=1
+ExecStart=-/usr/bin/sh -c '/home/core/restart.sh'
+
+[Install]
+WantedBy=multi-user.target
