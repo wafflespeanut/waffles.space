@@ -6,6 +6,7 @@ use iron::request::Request;
 use iron::response::Response;
 use server::{CUSTOM_4XX, CUSTOM_5XX};
 
+/// Custom page for 4xx and 5xx codes.
 pub struct CustomPage;
 
 impl AfterMiddleware for CustomPage {

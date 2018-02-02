@@ -11,18 +11,19 @@ docker run --name static \
     --restart always \
     -v /home/core/source:/source \
     -v /home/core/private:/private \
+    -v /home/core/config:/config
     -p ${ALIAS_ADDR}:8000:8000 \
     -e CUSTOM_4XX=/source/4xx.html \
     -e SOURCE=/source \
     -e PRIVATE_SOURCE=/private \
-    -e CONFIG=/config.json -d \
+    -e CONFIG=/config/static_server_config.json -d \
     wafflespeanut/static-server
 
 echo 'Deploying Nginx proxy...'
 docker run --name nginx \
     --restart always \
-    -v /home/core/nginx/nginx.conf:/etc/nginx/nginx.conf \
-    -v /home/core/nginx/default.conf:/etc/nginx/conf.d/default.conf \
+    -v /home/core/config/nginx.conf:/etc/nginx/nginx.conf \
+    -v /home/core/config/default.conf:/etc/nginx/conf.d/default.conf \
     -p 80:80 -d \
     nginx:1.13-alpine
 

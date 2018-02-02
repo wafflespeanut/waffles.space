@@ -49,19 +49,24 @@ pub fn start() {
         format!("{:?}: {}: {}", Utc::now(), record.level(), record.args())
     }).filter(None, LogLevelFilter::Info);
 
-    if let Ok(v) = env::var("RUST_LOG") {
+    if let Ok(v) = env::var("LOG_LEVEL") {
        builder.parse(&v);
     }
 
     builder.init().unwrap();
+    utils::create_dir_if_not_exists(&*PRIVATE_PATH_ROOT);
+    utils::create_dir_if_not_exists(&*SERVE_PATH_ROOT);
+
+    info!("Initializing watcher...");
+    let mut watcher = PrivateWatcher::new();
+    watcher.initialize();
+
     let _ = thread::spawn(move || {
-        let mut watcher = PrivateWatcher::new(&*PRIVATE_PATH_ROOT, &*PRIVATE_SERVE_PATH);
         watcher.start_watching();
     });
 
     info!("Initializing routes...");
     let mut mount = Mount::new();
-    utils::create_dir_if_not_exists(&*SERVE_PATH_ROOT);
     mount.mount("/", Static::new(&*SERVE_PATH_ROOT));
 
     let _ = (&*CUSTOM_4XX, &*CUSTOM_5XX);

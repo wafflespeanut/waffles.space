@@ -18,7 +18,7 @@ reclone _site git://github.com/wafflespeanut/waffles.space
 
 echo 'Copying site config...'
 cp -r _site/source/* .
-cp -r _site/nginx/* ~/nginx/
+cp -r _site/nginx/* ~/config/
 
 echo 'Updating systemd...'
 sudo cp _site/scripts/coreos-systemd/boot.service /etc/systemd/system/
