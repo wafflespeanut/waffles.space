@@ -9,7 +9,6 @@ use std::io::{BufReader, BufWriter};
 use std::sync::mpsc::{self, Receiver};
 use std::path::{Component, Path};
 use std::process::Command;
-use std::str::FromStr;
 use std::thread;
 use std::time::Duration;
 use uuid::Uuid;
@@ -28,7 +27,7 @@ struct TokenRotation {
 }
 
 impl TokenRotation {
-    //// Get the summed up time delta from this object.
+    /// Get the summed up time delta from this object.
     fn get_delta(&self) -> TimeDelta {
         let mut delta = TimeDelta::zero();
         if let Some(m) = self.minutes {
@@ -101,8 +100,7 @@ impl PrivateWatcher {
         PrivateWatcher {
             config: HashMap::new(),
             event_receiver: rx,
-            watcher: Watcher::new(tx, Duration::from_secs(2))
-                             .expect("cannot create watcher"),
+            watcher: Watcher::new(tx, Duration::from_secs(2)).expect("cannot create watcher"),
         }
     }
 
@@ -120,7 +118,7 @@ impl PrivateWatcher {
 
             let token = String::from(entry.file_name().to_str().unwrap());
             let dir_path = source.join(&token);
-            let uuid = match Uuid::from_str(&token) {
+            let uuid = match token.parse::<Uuid>() {
                 Ok(id) => id,
                 Err(_) => {
                     info!("Removing directory with invalid UUID: {}...", dir_path.display());
@@ -212,6 +210,8 @@ impl PrivateWatcher {
         // remove unnecessary entries.
         Self::check_private_paths(root_path, |uuid, name| {
             if self.config.get(&name).is_none() {
+                // This happens when the config is not a valid JSON, and we've defaulted to empty.
+                // At this point, we have no choice but to land on the default rotation for that link.
                 let mut link = PrivateLink::default();
                 link.id = uuid;
                 info!("Adding missing link for {}:{} to config...", name, link.id);
@@ -299,6 +299,9 @@ impl PrivateWatcher {
     pub fn start_watching(mut self) {
         let sleep_duration = Duration::from_millis(WATCHER_SLEEP_DURATION_MS);
 
+        // FIXME: Once `notify` has futures-mpsc support, let's switch to
+        // `tokio_core::reactor::Interval` for periodic notifications
+        // and select over both the streams (instead of try_recv).
         loop {
             // We're loading the config before handling the events, because
             // `reflect_source` will mutate the config.
