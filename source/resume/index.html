@@ -50,29 +50,44 @@
             <h2>Programming Skills:</h2>
             <p>
                 <strong>Languages:</strong>
-                <span>Rust, Python, Swift, HTML5, Vanilla JS (also Typescript), CSS, Bash.</span>
+                <span>Rust, Python, Swift, HTML5, TypeScript, Go, Bash.</span>
             </p>
             <p>
                 <strong>Technologies:</strong>
-                <span>Unix (OS X, Ubuntu), Git, REST, Vue JS, Docker, Kubernetes, PostgreSQL, Heroku, DigitalOcean.</span>
+                <span>Unix (OS X, Ubuntu), Git, REST, Vue JS, Docker, Kubernetes.</span>
             </p>
             <p>
                 <strong>Practices:</strong>
-                <span>Version controlled, Agile, Test-driven.</span>
+                <span>Version-controlled, Agile, Test-driven.</span>
             </p>
         </section>
         <section>
             <h2>Experience:</h2>
             <div class="sub-section">
-                <strong>Full-stack Developer</strong>
+                <strong>Cofounder / Engineer</strong>
                 <div>
-                    <em>Omnijar Studio</em>
-                    <em class="timespan">( October, 2017 - Present )</em>
+                    <em>Naamio</em>
+                    <em class="timespan">( November, 2018 - Present )</em>
                 </div>
                 <div>
                     <ul class="summary-bullet">
-                        <li>Writing backend microservices in Swift for an open-source e-commerce platform.</li>
-                        <li>Also writing frontend applications in Typescript and Vue for a client using the same platform.</li>
+                        <li>Built an automated platform-agnostic operator for managing Kubernetes clusters without having to rely on a cloud provider's Kubernetes service - it supports autoscaling nodes on demand, partitioning/attaching/cleaning up disks, creating/managing load balancers and deploying apps using Helm charts without the use of <code>kubectl</code> / <code>helm</code> CLI.</li>
+                        <li>Helped a client migrate their apps to Kubernetes clusters (in Azure) using the operator.</li>
+                        <li>Wrote a tool for automating deployment of web apps through CI for review, staging and production.</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="sub-section">
+                <strong>Full-stack Developer</strong>
+                <div>
+                    <em>Omnijar Studio</em>
+                    <em class="timespan">( October, 2017 - October, 2018 )</em>
+                </div>
+                <div>
+                    <ul class="summary-bullet">
+                        <li>Built a scalable e-commerce platform from scratch (in Swift, backed by CockroachDB) gated by an OAuth2 service with RBAC (in Go).</li>
+                        <li>Built a frontend (using VueJS) for the e-commerce platform.</li>
+                        <li>Built a high performance <a href="https://github.com/OmnijarBots/beryllium">bot library for Wire</a> messaging app.</li>
                     </ul>
                 </div>
             </div>
@@ -85,7 +100,7 @@
                 <div>
                     <ul class="summary-bullet">
                         <li>Contracted for a startup that develops applications for insurance brokers, which participated in the YCombinator summer (S-17) batch.</li>
-                        <li>Wrote code for backend microservices in Rust, laid out the infrastrucure in Kubernetes, and helped with frontend development.</li>
+                        <li>Wrote backend services for chat, auth and crypto (in Rust), worked on the webapop (pure TS) and took care of deployments in a Kubernetes cluster.</li>
                     </ul>
                 </div>
             </div>
@@ -93,16 +108,16 @@
                 <strong>Backend Developer</strong>
                 <div>
                     <em>Genome Life Sciences</em>
-                    <em class="timespan">( January, 2016 - January, 2018 )</em>
+                    <em class="timespan">( January, 2016 - February, 2018 )</em>
                 </div>
                 <div>
                     <ul class="summary-bullet">
                         <li>Wrote utilities in Rust for bulk parallel processing of chromosome and DNA sequence data in FASTQ, SAM and VCF file formats.</li>
                         <li>
-                            <em>Notable tools:</em>
+                            Notable tools:
                             <ul class="summary-bullet">
-                                <li>A species finder which takes DNA sequence(s) and finds known species in O(1) time.</li>
-                                <li>A sequence aligner which uses Burrows-Wheeler transform and FM-index to backtrack and map DNA sequences to the human reference genome in O(n) time.</li>
+                                <li>A species finder species finder that matches and maps sample DNA data to find known species.</li>
+                                <li>A sequence aligner which uses Burrows-Wheeler transform and FM-index to backtrack and map DNA sequences to the human reference genome. I've <a href="https://github.com/wafflespeanut/nucleic-acid">open-sourced</a> the lib used by it and <a href="https://blog.waffles.space/2017/02/12/exploring-the-human-genome-part-1/">blogged</a> about its basics.</li>
                             </ul>
                         </li>
                     </ul>
@@ -114,7 +129,7 @@
             <div class="sub-section">
                 <h3>Servo</h3>
                 <ul class="summary-bullet">
-                    <li>Contributor and <a href="https://blog.servo.org/2016/01/11/twis-47/">reviewer</a> for the <a href="https://github.com/servo/servo">Servo browser engine project</a> (2015 - 2017).</li>
+                    <li>Contributor and <a href="https://blog.servo.org/2016/01/11/twis-47/">reviewer</a> for <a href="https://github.com/servo/servo">Servo browser engine project</a> (2015 - 2017).</li>
                     <li>I worked on the style system, python-based build system, and mentoring newcomers. Apart from helping folks in IRC and Github issues, I've authored <a href="https://github.com/servo/servo/commits?author=wafflespeanut">more than 100 commits</a> and reviewed <a href="https://github.com/servo/servo/pulls?q=is:pr+assignee:wafflespeanut+is:closed">more than 200 pull requests</a>.</li>
                     <li>Implemented code for parsing and serialization of CSS <code>grid</code> shorthand and longhand properties.</li>
                     <li>Wrote <a href="https://github.com/servo/highfive/commits?author=wafflespeanut">handlers</a> for <a href="https://github.com/servo/highfive">highfive</a> (a bot that responds to Github webhook payloads by welcoming newcomers, assign/tag issues and pull requests, post build failures, etc.) and a "mark and sweep" <a href="https://github.com/servo/highfive/pull/115">JSON cleaner</a> for its tests.</li>
@@ -123,39 +138,11 @@
                 </ul>
                 <h3>Other</h3>
                 <ul class="summary-bullet">
+                    <li>Wrote a <a href="https://github.com/servo-automation/highfive">Github app</a> (bot) which provides a friendly welcoming environment to open-source contributors. It tracks issues and pull requests, and performs actions such as assigning, labelling and commenting on issues and pull requests (using the Github API).</li>
                     <li>Occassional contributor to the <a href="https://github.com/rust-lang/rust">Rust programming language</a>, its documentation and related tooling.</li>
                     <li><a href="https://mozillians.org/en-US/u/wafflespeanut">Mozillian</a> since the summer of 2015.</li>
                 </ul>
             </div>
-        </section>
-        <section>
-            <h2>Personal projects:</h2>
-            <ul id="projects">
-                <li>
-                    <a href="https://github.com/servo-automation/highfive"><strong>Highfive: <sup>(2017)</sup></strong></a>
-                    <div>A Github integration (bot) to provide a friendly welcoming environment for the contributors to open-source. It tracks issues and pull requests and performs actions such as assigning, labelling and commenting on issues and pull requests (using the Github API).</div>
-                </li>
-                <li>
-                    <a href="https://github.com/OmnijarBots/beryllium"><strong>Beryllium: <sup>(2017)</sup></strong></a>
-                    <div>A high-performance bot SDK for <a href="https://wire.com/en/">Wire</a> written in Rust. The entire SDK is built with the asynchronous features of Rust.</div>
-                </li>
-                <li>
-                    <a href="https://github.com/wafflespeanut/nucleic-acid"><strong>Nucleic acid: <sup>(2017)</sup></strong></a>
-                    <div>A Rust library to map short DNA sequence reads to the reference genome. It makes use of suffix array to generate the Burrows-Wheeler transform, from which an FM-index is built and used for finding exact matches in O(1) time.</div>
-                </li>
-                <li>
-                    <a href="https://github.com/wafflespeanut/rust-catalog"><strong>Catalog: <sup>(2016)</sup></strong></a>
-                    <div>A "file-backed" map written in Rust, for maintaining key/value pairs in a file, which uses binary search and file seeking to "get" the values in O(log-n) time.</div>
-                </li>
-                <li>
-                    <a href="https://github.com/wafflespeanut/biographer"><strong>Biographer: <sup>(2015)</sup></strong></a>
-                    <div>A command-line based private diary written in Python, which allows users to write their everyday stories, view them, or search through them later. It makes use of a simple shifting cipher to encrypt/decrypt the contents. It also contains a Rust library, which uses FFI and parallelization to reduce the searching time by a factor of ≈100.</div>
-                </li>
-                <li>
-                    <a href="https://github.com/wafflespeanut/free-fall"><strong>Free fall: <sup>(2015)</sup></strong></a>
-                    <div>A terminal based 2D-ASCII game written in Rust, where the users try to save a jumper from hitting the cliffs. The game makes use of the terminal’s raw mode and interacts with the Unix C libraries for polling the keystroke inputs and prints thousands of characters frame by frame to indicate motion.</div>
-                </li>
-            </ul>
         </section>
         <section>
             <h2>Miscellaneous:</h2>
@@ -170,7 +157,10 @@
                         <ul class="summary-bullet">
                             <li>An <a href="https://github.com/wafflespeanut/ascii-art-generator">ASCII Art Generator</a> for JPEG/PNG images which <a href="https://blog.waffles.space/2017/03/01/ascii-sketch/">extracts the necessary details</a> for generating the ASCII sketch.</li>
                             <li>A <a href="https://github.com/wafflespeanut/AISH">CSS injector</a> that slowly injects a stylesheet into a style element in the DOM and gets rendered in realtime.</li>
-                            <li>A <a href="https://github.com/wafflespeanut/flight-2016">responsive website</a> for our college symposium (2016) without the use of any external libraries.</li>
+                            <li>A <a href="https://github.com/wafflespeanut/flight-2016">responsive website</a> for our college symposium without the use of any external libraries.</li>
+                            <li>A terminal based <a href="https://github.com/wafflespeanut/free-fall">2D-ASCII game</a> (in Rust) which makes use of terminal’s raw mode, interacting with Unix C APIs for polling keystroke inputs, and prints thousands of characters frame by frame to indicate motion.</li>
+                            <li>A <a href="https://github.com/wafflespeanut/biographer">private diary</a> (in Python), which allows users to write their everyday stories, view them, or search through them later. It makes use of a simple shifting cipher to encrypt/decrypt the contents. It also uses a Rust library (through FFI) for searching.</li>
+                            <li>A <a href="https://github.com/wafflespeanut/rust-catalog">"file-backed" map</a> (in Rust) which uses binary search and file seeking to insert/get key-value pairs.</li>
                         </ul>
                     </li>
                 </ul>
