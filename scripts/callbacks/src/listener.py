@@ -1,9 +1,11 @@
 from flask import Flask, request
 
 import imp
+import logging
 import os
 
 if __name__ == '__main__':
+    logging.basicConfig(level=logging.INFO)
     app = Flask('Callbacks server')
     handlers = {}
     handler_dir = os.path.dirname(os.path.realpath(__file__))
@@ -17,11 +19,9 @@ if __name__ == '__main__':
 
         mod_name = os.path.basename(mod_path).split('.')[0]
         mod_path = os.path.join(handler_dir, mod_path)
-        print 'Loading', mod_path
         module = imp.load_source(mod_name, mod_path)
-
+        logging.info('Loading %s' % mod_path)
         try:
-            module.init()
             handlers[mod_name] = module.handle
         except AttributeError:
             continue
