@@ -2,6 +2,8 @@
 
 docker network create waffles
 
+while read line; do eval "export $line"; done < /home/core/server_env
+
 echo 'Launching static file server...'
 docker run --name static \
     --restart always \

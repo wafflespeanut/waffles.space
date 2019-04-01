@@ -8,5 +8,4 @@ if [ -z "$KEEP_IMAGES" ]; then
     docker rmi $(docker images -a -q);
 fi
 
-/home/core/env_export.sh
 /home/core/start.sh
