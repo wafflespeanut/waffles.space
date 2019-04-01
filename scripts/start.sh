@@ -30,3 +30,11 @@ docker run --name nginx \
     -v /home/core/letsencrypt/live/waffles.space:/etc/certs \
     -v /home/core/letsencrypt/archive:/archive \
     -p 80:80 -p 443:443 -d nginx:alpine
+
+echo 'Deploying callbacks listener'
+docker run --name callbacks \
+    --restart always \
+    --network waffles \
+    -e SECRET=${CALLBACK_SECRET} \
+    -e SKYPE_USER=${SKYPE_USER} -e SKYPE_PASS=${SKYPE_PASS} \
+    -d wafflespeanut/server-callbacks

@@ -1,0 +1,11 @@
+FROM python:2.7.13-alpine3.6
+
+WORKDIR /usr/src/app
+
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY src ./callbacks
+
+ENV PORT 7777
+ENTRYPOINT ["python", "./callbacks/listener.py"]
