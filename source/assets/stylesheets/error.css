@@ -1,0 +1,41 @@
+@media only screen {
+  main {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+  }
+
+  #error {
+    margin-top: 10vh;
+    display: flex;
+    flex-flow: column;
+  }
+
+  #error p {
+    margin: 0 8vw;
+    font-family: 'Indie Flower', cursive;
+    font-size: 10vw;
+  }
+
+  #error img {
+    margin-top: 5vh;
+    width: 100%;
+  }
+}
+
+@media only screen and (min-width: 700px) {
+  #error {
+    flex-flow: row;
+  }
+
+  #error p {
+    width: 40vw;
+    margin-top: 10vh;
+    margin-left: 10vw;
+    font-size: 10vh;
+  }
+
+  #error img {
+    width: auto; height: 75vh;
+  }
+}
