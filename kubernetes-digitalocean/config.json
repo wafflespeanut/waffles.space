@@ -1,6 +1,0 @@
-{
-    "api-token": "foobar",
-    "ssh-key-path": "~/.ssh/id_rsa.pub",
-    "size": "512mb",
-    "certs-path": "~/kube-digitalocean"
-}

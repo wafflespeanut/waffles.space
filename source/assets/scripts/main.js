@@ -83,7 +83,6 @@ const TYPE_INTERVAL = 25;
                 var interval_id;
 
                 function print_lines(finish_callback) {
-                    console.log(i);
                     if (i < lines.length) {
                         if (j < lines[i].length) {
                             p.innerHTML += lines[i][j];

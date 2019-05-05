@@ -15,6 +15,7 @@ echo 'Cloning public repos...'
 reclone AISH git://github.com/wafflespeanut/AISH
 reclone flight-2016 git://github.com/wafflespeanut/flight-2016
 reclone _site git://github.com/wafflespeanut/waffles.space
+reclone ascii-gen git://github.com/wafflespeanut/ascii-art-generator
 
 echo 'Copying site config...'
 cp -r _site/source/* .
