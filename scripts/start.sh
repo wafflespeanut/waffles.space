@@ -11,7 +11,6 @@ docker run --name static \
     -v /home/core/source:/source \
     -v /home/core/private:/private \
     -v /home/core/config:/config \
-    -e CUSTOM_4XX=/source/4xx.html \
     -e SOURCE=/source \
     -e PRIVATE_SOURCE=/private \
     -e CONFIG=/config/static_server_config.json -d \
