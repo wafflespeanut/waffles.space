@@ -1,85 +1,65 @@
+*, *:before, *:after {
+  box-sizing: border-box;
+}
+
 a {
-    text-decoration: none;
-    color: red;
+  text-decoration: none;
+  color: red;
 }
 
 body {
-    background-color: ##DDDDDD;
+  background-color: #DDDDDD;
 }
 
-code {
-    font-size: 0.85em;
-}
-
-h1,h2,h3 {
-    font-family: "Roboto";
+h1, h2, h3 {
+  font-family: "Roboto";
 }
 
 main {
-    padding: 0 2vw 4vh 2vw;
+  font-size: 1.1em;
+  padding: 0 4%;
 }
 
 main h1 {
-    text-align: center;
-}
-
-section h2 {
-    font-size: 3.5vh;
-    margin-top: 4vh;
-    margin-bottom: 1.5vh;
-}
-
-section h3 {
-    margin: 2vh 0;
-    padding-left: 2.5vw;
-    font-size: 3vh;
+  text-align: center;
 }
 
 span,strong,div {
-    font-size: 2.75vh;
-    font-family: "Open Sans";
+  font-family: "Open Sans";
 }
 
-.social-icon img {
-    padding: 0.7vh 1vh;
-    width: 10vw;
-    vertical-align: middle;
+hr {
+  margin: 0 5%;
 }
 
-.social-icon span {
-    vertical-align: middle;
-}
-
-.sub-section div {
-    justify-content: space-between;
-    display: flex;
-    flex-flow: column;
-}
-
-.sub-section div > *, .sub-section ul {
-    font-size: 2.7vh;
-}
-
-.summary-bullet {
-    margin: 1vh 0;
-    padding-left: 25px;
-}
-
-.summary-bullet > li > .summary-bullet {
-    margin: 0;
-    padding: 0 5vw;
-}
-
-#projects {
-    padding: 0 3vw;
-    margin: 0;
-}
-
-#projects > li {
-    padding-bottom: 2vh;
-    list-style-type: none;
+#social-links {
+  display: grid;
+  grid-template-rows: repeat(4, 1fr);
+  row-gap: 15px;
 }
 
 #social-links a {
-    color: blue;
+  color: blue;
+}
+
+#projects > li {
+  list-style-type: none;
+}
+
+.social-icon img {
+  width: 10%;
+  vertical-align: middle;
+}
+
+.social-icon span {
+  padding-left: 8px;
+}
+
+.sub-section > div {
+  display: flex;
+  flex-flow: column;
+}
+
+.summary-bullet {
+  padding-left: 24px;
 }
