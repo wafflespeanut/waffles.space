@@ -1,6 +1,6 @@
 #/usr/bin/bash
 
-cd ~/source
+cd ~/source     # public assets
 
 reclone() {
     if [ -d $1 ]; then
@@ -8,24 +8,28 @@ reclone() {
     fi
 
     git clone $2 $1
-    rm -rf $1/.git
+    sudo rm -rf $1/.git
 }
+
+if [ -z "$NO_SELF_UPDATE" ]; then
+    reclone _site git://github.com/wafflespeanut/waffles.space
+    cp _site/scripts/*.sh ~/
+    NO_SELF_UPDATE=1 ~/setup.sh
+    exit $?
+fi
 
 echo 'Cloning public repos...'
 reclone AISH git://github.com/wafflespeanut/AISH
 reclone flight-2016 git://github.com/wafflespeanut/flight-2016
-reclone _site git://github.com/wafflespeanut/waffles.space
-reclone _ascii git://github.com/wafflespeanut/ascii-art-generator
 
-echo 'Building ASCII art generator...'
-rm -rf ascii-gen
-cd _ascii
-sudo chmod 777 .
-docker run --rm -it -v "$(pwd)":/home/rust/src wafflespeanut/rust-wasm-builder:nightly wasm-pack build
-docker run --rm -it -v "$(pwd)":/home/node/app node sh -c "cd /home/node/app/pkg && npm link && cd .. && npm link rusty-sketch && npm install && npm run build"
-sudo chown -R core .
-cp -r .build ../ascii-gen
-cd .. && rm -rf _ascii
+echo 'Copying from docker images...'
+sudo rm -rf ascii-gen
+docker run -t --rm --entrypoint sh -v "$(pwd)/ascii-gen":/out wafflespeanut/rusty-sketch -c "cp -rf /source/* /out/"
+sudo chown -R core ascii-gen
+
+if [ -z "$NO_SELF_UPDATE" ]; then
+    reclone _site git://github.com/wafflespeanut/waffles.space
+fi
 
 echo 'Copying site config...'
 cp -r _site/source/* .
@@ -36,5 +40,4 @@ sudo cp _site/scripts/coreos-systemd/boot.service /etc/systemd/system/
 sudo systemctl enable /etc/systemd/system/boot.service
 sudo systemctl start boot.service
 
-cp _site/scripts/*.sh ~/
 rm -rf _site
