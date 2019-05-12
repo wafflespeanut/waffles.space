@@ -8,6 +8,7 @@ extern crate log;
 extern crate serde_derive;
 
 mod server;
+mod sms;
 mod staticfile;
 mod util;
 mod watcher;

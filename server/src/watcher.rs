@@ -1,19 +1,23 @@
 use crate::util;
 use chrono::offset::Utc;
 use chrono::{DateTime, Duration as TimeDelta};
+use crossbeam_channel::{self as mpmc, Receiver as MpmcReceiver, Sender as MpmcSender};
 use notify::{DebouncedEvent, RecommendedWatcher, RecursiveMode, Watcher};
+
 use std::collections::HashMap;
 use std::fs::{self, File};
 use std::path::{Component, Path, PathBuf};
 use std::process::Command;
 use std::sync::mpsc::{self, Receiver};
 use std::thread;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 use uuid::Uuid;
 
 // TODO: This is old and huge. Need to refactor and add tests!
 
-const WATCHER_SLEEP_DURATION_MS: u64 = 1000;
+const WATCHER_SLEEP_DURATION: Duration = Duration::from_millis(1000);
+const WATCHER_SMS_DURATION: Duration = Duration::from_secs(30);
+const SMS_LIMIT: usize = 160;
 
 /// Indicates the lifetime of this token.
 #[derive(Clone, Copy, Default, Deserialize, Serialize)]
@@ -94,6 +98,7 @@ pub struct PrivateWatcher {
     config_path: PathBuf,
     config: HashMap<String, PrivateLink>,
     event_receiver: Receiver<DebouncedEvent>,
+    access_receiver: MpmcReceiver<(Uuid, String)>,
     watcher: RecommendedWatcher,
 }
 
@@ -107,12 +112,13 @@ impl PrivateWatcher {
             config_path: PathBuf::from(config_path),
             config: HashMap::new(),
             event_receiver: rx,
+            access_receiver: mpmc::unbounded().1, // set default for now
             watcher: Watcher::new(tx, Duration::from_secs(2)).expect("cannot create watcher"),
         }
     }
 
     /// Cleanup, create replicas in the serving directory, and start watching.
-    pub fn initialize(&mut self) {
+    pub fn initialize(&mut self) -> MpmcSender<(Uuid, String)> {
         info!("Cleaning up private directory.");
         if self.reflect_path.exists() {
             util::remove_any_path(&self.reflect_path);
@@ -156,6 +162,10 @@ impl PrivateWatcher {
             .watch(&self.root_path, RecursiveMode::Recursive)
             .expect("cannot watch path");
         info!("Watching {}", self.root_path.display());
+
+        let (sender, receiver) = mpmc::unbounded();
+        self.access_receiver = receiver;
+        sender
     }
 
     /// Validate the serving path against its source.
@@ -321,7 +331,8 @@ impl PrivateWatcher {
 
     /// Start watching for events and handle them accordingly.
     pub fn start_watching(mut self) {
-        let sleep_duration = Duration::from_millis(WATCHER_SLEEP_DURATION_MS);
+        let mut notify_time = Instant::now();
+        let mut accesses = HashMap::new();
 
         // FIXME: Once `notify` has futures-mpsc support, let's switch to
         // `tokio_core::reactor::Interval` for periodic notifications
@@ -343,7 +354,42 @@ impl PrivateWatcher {
             }
 
             self.check_config();
-            thread::sleep(sleep_duration);
+            thread::sleep(WATCHER_SLEEP_DURATION);
+
+            // SMS private path accesses over some interval.
+            while let Ok((uuid, sub_path)) = self.access_receiver.try_recv() {
+                match self.config.get(&sub_path) {
+                    Some(l) if l.id == uuid => (),
+                    _ => continue,
+                }
+
+                let c = accesses.entry((uuid, sub_path)).or_insert(0);
+                *c += 1;
+            }
+
+            if notify_time.elapsed() > WATCHER_SMS_DURATION {
+                notify_time = Instant::now();
+                if accesses.is_empty() {
+                    continue;
+                }
+
+                let mut vec = accesses.drain().collect::<Vec<_>>();
+                vec.sort_by(|(_, a), (_, b)| b.cmp(&a)); // sort descending by counts
+                let mut msg = format!("Caution!");
+                for ((_id, p), c) in vec {
+                    let entry = format!("\n{}: {}", p, c);
+                    if msg.len() + entry.len() > (SMS_LIMIT - 4) {
+                        msg.push_str("\n..."); // trim after single message length
+                        break;
+                    } else {
+                        msg.push_str(&entry);
+                    }
+                }
+
+                if let Err(e) = crate::sms::send_using_twilio(&msg) {
+                    error!("Error sending message: {}", e);
+                }
+            }
         }
     }
 }

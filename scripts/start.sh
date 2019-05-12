@@ -14,6 +14,11 @@ docker run --name static \
     -e SOURCE=/source \
     -e PRIVATE_SOURCE=/private \
     -e CONFIG=/config/static_server_config.json -d \
+    -e LOG_LEVEL=info \
+    -e TWILIO_SENDER=${TWILIO_SENDER} \
+    -e TWILIO_RECEIVER=${TWILIO_RECEIVER} \
+    -e TWILIO_ACCOUNT=${TWILIO_ACCOUNT} \
+    -e TWILIO_TOKEN=${TWILIO_TOKEN} \
     wafflespeanut/static-server
 
 echo 'Deploying Nginx proxy...'
