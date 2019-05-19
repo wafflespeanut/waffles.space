@@ -30,8 +30,6 @@ div, li, p, span, strong {
 }
 
 .social-icon img {
-  height: 66%;
   width: auto;
-  max-width: 100%;
-  max-height: 100%;
+  max-height: 5vh;  /* Should be constrained to `100%` and actual `height` set to some relative unit but Chrome fucks things up */
 }
