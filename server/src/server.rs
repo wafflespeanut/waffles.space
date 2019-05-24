@@ -1,7 +1,7 @@
 use crate::staticfile::StaticFile;
 use crate::util;
 use crate::watcher::PrivateWatcher;
-use futures_preview::future::BoxFuture;
+use futures::future::BoxFuture;
 use tide::{
     middleware::{Middleware, Next},
     App, Context, Response,

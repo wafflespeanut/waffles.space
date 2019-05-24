@@ -1,4 +1,3 @@
-use futures::Future;
 use http::header;
 use reqwest::Client;
 use rusoto_core::{request::HttpClient, Region, RusotoError};
@@ -78,7 +77,7 @@ fn send_using_aws(message: &str) -> Result<bool, RusotoError<PublishError>> {
             phone_number: Some(receiver.clone()),
             ..Default::default()
         })
-        .wait()?;
+        .sync()?;
     info!("AWS response: {:?}", resp);
     Ok(true)
 }

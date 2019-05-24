@@ -1,7 +1,7 @@
 use bytes::Bytes;
+use futures::compat::*;
+use futures::future::FutureObj;
 use futures_fs::FsPool;
-use futures_preview::compat::*;
-use futures_preview::future::FutureObj;
 use http::{
     header::{self, HeaderMap},
     StatusCode,
