@@ -2,7 +2,7 @@ use http::header;
 use reqwest::Client;
 use rusoto_core::{request::HttpClient, Region, RusotoError};
 use rusoto_credential::EnvironmentProvider;
-use rusoto_sns::{PublishError, PublishInput, Sns, SnsClient};
+use rusoto_sns::{MessageAttributeValue, PublishError, PublishInput, Sns, SnsClient};
 
 use std::collections::HashMap;
 use std::env;
@@ -36,6 +36,16 @@ lazy_static! {
     static ref AWS_CLIENT: Option<SnsClient> = AWS_REGION.as_ref().map(|region| {
         SnsClient::new_with(HttpClient::new().expect("creating https client"), AWS_ENV.clone(), region.clone())
     });
+
+    static ref AWS_MSG_ATTRS: Option<HashMap<String, MessageAttributeValue>> = {
+        let mut h = HashMap::new();
+        h.insert("AWS.SNS.SMS.SMSType".into(), MessageAttributeValue {
+            binary_value: None,
+            data_type: "String".into(),
+            string_value: Some("Transactional".into()),
+        });
+        Some(h)
+    };
 
     /* Other */
 
@@ -75,6 +85,7 @@ fn send_using_aws(message: &str) -> Result<bool, RusotoError<PublishError>> {
         .publish(PublishInput {
             message: message.into(),
             phone_number: Some(receiver.clone()),
+            message_attributes: AWS_MSG_ATTRS.clone(),
             ..Default::default()
         })
         .sync()?;
