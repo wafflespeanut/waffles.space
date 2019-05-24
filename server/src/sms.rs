@@ -1,15 +1,23 @@
+use futures::Future;
 use http::header;
 use reqwest::Client;
+use rusoto_core::{request::HttpClient, Region, RusotoError};
+use rusoto_credential::EnvironmentProvider;
+use rusoto_sns::{PublishError, PublishInput, Sns, SnsClient};
 
 use std::collections::HashMap;
 use std::env;
 
+// FIXME: Quick cheap way of doing stuff! I know!
 lazy_static! {
+    /// SMS receiver number (E.164 format).
+    static ref SMS_RECEIVER: Option<String>
+        = env::var("SMS_RECEIVER").ok();
+
+    /* Twilio */
     /// Twilio account ID set in environment.
     static ref TWILIO_ACCOUNT: Option<String>
         = env::var("TWILIO_ACCOUNT").ok();
-    static ref TWILIO_RECEIVER: Option<String>
-        = env::var("TWILIO_RECEIVER").ok();
     /// Twilio access token set in environment.
     static ref TWILIO_TOKEN: Option<String>
         = env::var("TWILIO_TOKEN").ok();
@@ -18,24 +26,77 @@ lazy_static! {
         = env::var("TWILIO_SENDER").ok();
     static ref TWILIO_API_ENDPOINT: Option<String>
         = TWILIO_ACCOUNT.as_ref().and_then(|a| Some(format!("https://api.twilio.com/2010-04-01/Accounts/{}/Messages.json", a)));
-    // FIXME: I know! Quick cheap way of doing stuff!
+
+    /* AWS */
+
+    // Uses `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`
+    static ref AWS_ENV: EnvironmentProvider = EnvironmentProvider::default();
+    /// AWS region used by the provider.
+    static ref AWS_REGION: Option<Region>
+        = env::var("AWS_REGION").ok().and_then(|s| s.parse().ok());
+    static ref AWS_CLIENT: Option<SnsClient> = AWS_REGION.as_ref().map(|region| {
+        SnsClient::new_with(HttpClient::new().expect("creating https client"), AWS_ENV.clone(), region.clone())
+    });
+
+    /* Other */
+
     static ref HTTP_CLIENT: Client = Client::new();
 }
 
-/// Send a message to the given number using Twilio API.
-pub fn send_using_twilio(message: &str) -> Result<(), reqwest::Error> {
-    info!("[SENDING MESSAGE]\n{}\n", message);
+/// Sends the message to the given number.
+pub fn send(message: &str) {
+    info!("[MESSAGE]\n{}\n", message);
+    match send_using_aws(message) {
+        Ok(true) => return,
+        Ok(false) => (),
+        Err(e) => error!("Error sending message using AWS: {:?}", e),
+    }
+
+    match send_using_twilio(message) {
+        Ok(true) => return,
+        Ok(false) => (),
+        Err(e) => error!("Error sending message using Twilio: {:?}", e),
+    }
+
+    error!("No supported SMS providers have been configured.");
+}
+
+/// Sends a message using AWS SNS API.
+fn send_using_aws(message: &str) -> Result<bool, RusotoError<PublishError>> {
+    info!("Sending message using AWS.");
+    let (client, receiver) = match (AWS_CLIENT.as_ref(), SMS_RECEIVER.as_ref()) {
+        (Some(c), Some(r)) => (c, r),
+        _ => {
+            info!("Missing environment variables for AWS API.");
+            return Ok(false);
+        }
+    };
+
+    let resp = client
+        .publish(PublishInput {
+            message: message.into(),
+            phone_number: Some(receiver.clone()),
+            ..Default::default()
+        })
+        .wait()?;
+    info!("AWS response: {:?}", resp);
+    Ok(true)
+}
+
+/// Send a message using Twilio API.
+fn send_using_twilio(message: &str) -> Result<bool, reqwest::Error> {
+    info!("Sending message using Twilio.");
     let (sender, receiver, endpoint, account, token) = match (
         TWILIO_SENDER.as_ref(),
-        TWILIO_RECEIVER.as_ref(),
+        SMS_RECEIVER.as_ref(),
         TWILIO_API_ENDPOINT.as_ref(),
         TWILIO_ACCOUNT.as_ref(),
         TWILIO_TOKEN.as_ref(),
     ) {
         (Some(s), Some(r), Some(e), Some(a), Some(t)) => (s, r, e, a, t),
         _ => {
-            error!("Missing environment variables for Twilio API.");
-            return Ok(());
+            info!("Missing environment variables for Twilio API.");
+            return Ok(false);
         }
     };
 
@@ -57,5 +118,5 @@ pub fn send_using_twilio(message: &str) -> Result<(), reqwest::Error> {
     let json: serde_json::Value = response.json()?;
     info!("{}: {}", response.status(), json);
 
-    Ok(())
+    Ok(true)
 }

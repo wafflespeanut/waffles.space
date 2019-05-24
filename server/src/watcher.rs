@@ -17,7 +17,7 @@ use uuid::Uuid;
 
 const WATCHER_SLEEP_DURATION: Duration = Duration::from_millis(1000);
 const WATCHER_SMS_DURATION: Duration = Duration::from_secs(30);
-const SMS_LIMIT: usize = 160;
+const SMS_LIMIT: usize = 140; // 160 GSM chars or 140 ASCII chars
 
 /// Indicates the lifetime of this token.
 #[derive(Clone, Copy, Default, Deserialize, Serialize)]
@@ -386,9 +386,7 @@ impl PrivateWatcher {
                     }
                 }
 
-                if let Err(e) = crate::sms::send_using_twilio(&msg) {
-                    error!("Error sending message: {}", e);
-                }
+                crate::sms::send(&msg);
             }
         }
     }
