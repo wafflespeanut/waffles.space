@@ -20,7 +20,7 @@ const WATCHER_SMS_DURATION: Duration = Duration::from_secs(30);
 const SMS_LIMIT: usize = 140; // 160 GSM chars or 140 ASCII chars
 
 /// Indicates the lifetime of this token.
-#[derive(Clone, Copy, Default, Deserialize, Serialize)]
+#[derive(Clone, Copy, Deserialize, Serialize)]
 struct TokenRotation {
     minutes: Option<u8>,
     hours: Option<u8>,
@@ -30,9 +30,21 @@ struct TokenRotation {
     remove_on_expiry: bool,
 }
 
+impl Default for TokenRotation {
+    fn default() -> Self {
+        TokenRotation {
+            minutes: None,
+            hours: None,
+            days: Some(1), // default rotation is 1 day.
+            weeks: None,
+            remove_on_expiry: false,
+        }
+    }
+}
+
 impl TokenRotation {
-    /// Get the summed up time delta from this object.
-    fn get_delta(&self) -> TimeDelta {
+    /// Returns the expiry time for this token from this moment.
+    fn expiry(&self) -> DateTime<Utc> {
         let mut delta = TimeDelta::zero();
         if let Some(m) = self.minutes {
             delta = delta + TimeDelta::minutes(m as i64);
@@ -46,7 +58,7 @@ impl TokenRotation {
             delta = delta + TimeDelta::days(d as i64);
         }
 
-        delta
+        Utc::now() + delta
     }
 }
 
@@ -60,11 +72,10 @@ struct PrivateLink {
 
 impl Default for PrivateLink {
     fn default() -> Self {
-        let mut rotation = TokenRotation::default();
-        rotation.days = Some(1); // default rotation is 1 day.
+        let rotation = TokenRotation::default();
         PrivateLink {
             id: Uuid::new_v4(),
-            expiry: Some(Utc::now() + rotation.get_delta()),
+            expiry: Some(rotation.expiry()),
             rotation,
         }
     }
@@ -79,11 +90,15 @@ impl PrivateLink {
     /// Check if this link has expired. If it is, then change the UUID,
     /// and apply rotation (i.e., new expiry timestamp).
     fn change_if_expired(&mut self) -> bool {
-        if self.expiry.expect("expected expiry") < Utc::now() {
-            let rotation = self.rotation;
-            *self = PrivateLink::default();
-            self.rotation = rotation;
-            return true;
+        match &mut self.expiry {
+            Some(ref mut dt) if *dt < Utc::now() => {
+                self.id = Uuid::new_v4();
+                *dt = self.rotation.expiry();
+                return true;
+            }
+            Some(_) => (),
+            // If expiry is null, then set expiry starting from this moment.
+            dt => *dt = Some(self.rotation.expiry()),
         }
 
         false
