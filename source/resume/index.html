@@ -5,166 +5,180 @@
       xmlns:svg="http://www.w3.org/2000/svg"
       xmlns:xlink="http://www.w3.org/1999/xlink">
 <head>
-    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
-    <meta name="viewport" content="width=device-width, maximum-scale=1, minimum-scale=1" />
-    <link href="https://fonts.googleapis.com/css?family=Roboto:300" rel="stylesheet" type="text/css">
-    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300" rel="stylesheet" type="text/css">
-    <link rel="stylesheet" media="only screen" href="stylesheets/handheld.css" type="text/css" />
-    <link rel="stylesheet" media="only screen and (min-width: 800px)" href="stylesheets/screen.css" type="text/css" />
-    <link rel="icon" type="image/png" href="../assets/icons/favicon.png" />
-    <title>Resume</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+  <meta name="viewport" content="width=device-width, maximum-scale=1, minimum-scale=1" />
+  <link href="https://fonts.googleapis.com/css?family=Roboto:300" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" media="only screen" href="stylesheets/handheld.css" type="text/css" />
+  <link rel="stylesheet" media="only screen and (min-width: 800px)" href="stylesheets/screen.css" type="text/css" />
+  <link rel="icon" type="image/png" href="../assets/icons/favicon.png" />
+  <title>Resume</title>
 </head>
 <body>
-    <main>
-        <header>
-            <h1>Ravi Shankar</h1>
-        </header>
-        <section id="social-links">
-            <div id="email-icon" class="social-icon">
-                <a href="mailto:wafflespeanut@gmail.com">
-                    <img src="../assets/icons/email.png" />
-                    <span>wafflespeanut [at] gmail</span>
-                </a>
-            </div>
-            <div id="twitter-icon" class="social-icon">
-                <a href="https://twitter.com/wafflespeanut" target="_blank">
-                    <img src="../assets/icons/twitter.png" />
-                    <span>@wafflespeanut</span>
-                </a>
-            </div>
-            <div id="github-icon" class="social-icon">
-                <a href="https://github.com/wafflespeanut" target="_blank">
-                    <img src="../assets/icons/github.png" />
-                    <span>wafflespeanut</span>
-                </a>
-            </div>
-            <div id="linkedin-icon" class="social-icon">
-                <a href="https://in.linkedin.com/in/wafflespeanut" target="_blank">
-                    <img src="../assets/icons/linkedin.png" />
-                    <span>wafflespeanut</span>
-                </div>
-            </a>
-        </section>
-        <section>
-            <h2>Programming Skills:</h2>
-            <p>
-                <strong>Languages:</strong>
-                <span>Rust, Python, Swift, HTML5, TypeScript, Go, Bash.</span>
-            </p>
-            <p>
-                <strong>Technologies:</strong>
-                <span>Unix (OS X, Ubuntu), Git, REST, Vue JS, Docker, Kubernetes.</span>
-            </p>
-            <p>
-                <strong>Practices:</strong>
-                <span>Version-controlled, Agile, Test-driven.</span>
-            </p>
-        </section>
-        <section>
-            <h2>Experience:</h2>
-            <div class="sub-section">
-                <strong>Cofounder / Engineer</strong>
-                <div>
-                    <em>Naamio</em>
-                    <em class="timespan">October, 2018 - March, 2019</em>
-                </div>
-                <div>
-                    <ul class="summary-bullet">
-                        <li>Built an automated platform-agnostic operator for managing Kubernetes clusters without having to rely on a cloud provider's Kubernetes service - it supports autoscaling nodes on demand, partitioning/attaching/cleaning up disks, creating/managing load balancers and deploying apps using Helm charts without the use of <code>kubectl</code> / <code>helm</code> CLI.</li>
-                        <li>Helped a client migrate their apps to Kubernetes clusters (in Azure) using the operator.</li>
-                        <li>Wrote a tool for automating deployment of internal web apps through CI for review, staging and production.</li>
-                    </ul>
-                </div>
-            </div>
-            <div class="sub-section">
-                <strong>Full-stack Developer</strong>
-                <div>
-                    <em>Omnijar Studio</em>
-                    <em class="timespan">October, 2017 - September, 2018</em>
-                </div>
-                <div>
-                    <ul class="summary-bullet">
-                        <li>Built a scalable e-commerce platform from scratch (in Swift, backed by CockroachDB) gated by an OAuth2 service with RBAC (in Go).</li>
-                        <li>Built the storefront and admin apps (using VueJS) for the e-commerce platform.</li>
-                        <li>Built a high performance <a href="https://github.com/OmnijarBots/beryllium">bot library for Wire</a> messaging app.</li>
-                    </ul>
-                </div>
-            </div>
-            <div class="sub-section">
-                <strong>Full-stack Developer</strong>
-                <div>
-                    <em>Surematics</em>
-                    <em class="timespan">June - August, 2017</em>
-                </div>
-                <div>
-                    <ul class="summary-bullet">
-                        <li>Contracted for a startup that develops applications for insurance brokers, which participated in the YCombinator summer (S-17) batch.</li>
-                        <li>Wrote backend services for chat, auth and crypto (in Rust), worked on the webapp (pure TS) and took care of deployments in a Kubernetes cluster.</li>
-                    </ul>
-                </div>
-            </div>
-            <div class="sub-section">
-                <strong>Backend Developer</strong>
-                <div>
-                    <em>Genome Life Sciences</em>
-                    <em class="timespan">January, 2016 - February, 2018</em>
-                </div>
-                <div>
-                    <ul class="summary-bullet">
-                        <li>Wrote utilities in Rust for bulk parallel processing of chromosome and DNA sequence data in FASTQ, SAM and VCF file formats.</li>
-                        <li>
-                            Notable tools:
-                            <ul class="summary-bullet">
-                                <li>A species finder species finder that matches and maps sample DNA data to find known species.</li>
-                                <li>A sequence aligner which uses Burrows-Wheeler transform and FM-index to backtrack and map DNA sequences to the human reference genome. I've <a href="https://github.com/wafflespeanut/nucleic-acid">open-sourced</a> the lib used by it and <a href="https://blog.waffles.space/2017/02/12/exploring-the-human-genome-part-1/">blogged</a> about its basics.</li>
-                            </ul>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </section>
-        <section>
-            <h2>Open source contributions:</h2>
-            <div class="sub-section">
-                <h3>Servo</h3>
-                <ul class="summary-bullet">
-                    <li>Contributor and <a href="https://blog.servo.org/2016/01/11/twis-47/">reviewer</a> for <a href="https://github.com/servo/servo">Servo browser engine project</a> (2015 - 2017).</li>
-                    <li>I worked on the style system, python-based build system, and mentoring newcomers. Apart from helping folks in IRC and Github issues, I've authored <a href="https://github.com/servo/servo/commits?author=wafflespeanut">more than 100 commits</a> and reviewed <a href="https://github.com/servo/servo/pulls?q=is:pr+assignee:wafflespeanut+is:closed">more than 200 pull requests</a>.</li>
-                    <li>Implemented code for parsing and serialization of CSS <code>grid</code> shorthand and longhand properties.</li>
-                    <li>Wrote <a href="https://github.com/servo/highfive/commits?author=wafflespeanut">handlers</a> for <a href="https://github.com/servo/highfive">highfive</a> (a bot that responds to Github webhook payloads by welcoming newcomers, assign/tag issues and pull requests, post build failures, etc.) and a "mark and sweep" <a href="https://github.com/servo/highfive/pull/115">JSON cleaner</a> for its tests.</li>
-                    <li>Created a <a href="https://github.com/servo-automation/servo-wpt">watcher</a> that tests Servo builds in a dedicated machine, analyzes the logs, maintains a database of "rr" recordings of intermittent failures, and uses the Github API to file issues or comments to notify the people who work on such issues.</li>
-                    <li>Wrote a <a href="https://github.com/wafflespeanut/rust-sorty">compiler plugin</a> for checking sorted order of declaration statements.</li>
-                </ul>
-                <h3>Other</h3>
-                <ul class="summary-bullet">
-                    <li>Wrote a <a href="https://github.com/servo-automation/highfive">Github app</a> (bot) which provides a friendly welcoming environment to open-source contributors. It tracks issues and pull requests, and performs actions such as assigning, labelling and commenting on issues and pull requests (using the Github API).</li>
-                    <li>Occassional contributor to the <a href="https://github.com/rust-lang/rust">Rust programming language</a>, its documentation and related tooling.</li>
-                    <li><a href="https://mozillians.org/en-US/u/wafflespeanut">Mozillian</a> since the summer of 2015.</li>
-                </ul>
-            </div>
-        </section>
-        <section>
-            <h2>Miscellaneous:</h2>
-            <div class="sub-section">
-                <ul class="summary-bullet">
-                    <li>Organizer for the <a href="https://www.meetup.com/mad-rs/">Rust Chennai meetup</a>.</li>
-                    <li><a href="https://teams.railsgirlssummerofcode.org/users/2358">RGSoC Coach</a> (primarily for Rust/Servo).</li>
-                    <li>Blogger since 2013 at <a href="https://wafflescrazypeanut.wordpress.com/">wafflescrazypeanut.wordpress.com</a> and now, at <a href="https://blog.waffles.space/">blog.waffles.space</a>.</li>
-                    <li><a href="https://physics.stackexchange.com/users/11062">Contributor and reviewer</a> of posts at Physics Stack Exchange for two years (2013-2015).</li>
-                    <li>
-                        <span>I also play with code and make some cool stuff in my free time:</span>
-                        <ul class="summary-bullet">
-                            <li>An <a href="https://github.com/wafflespeanut/ascii-art-generator">ASCII Art Generator</a> for images which <a href="https://blog.waffles.space/2017/03/01/ascii-sketch/">extracts the necessary details</a> for generating the ASCII sketch - <a href="https://github.com/wafflespeanut/ascii-art-generator/tree/0b519b00b43eadb8500db30c304b2b87ad7eb159">written in Python</a>, later ported to Rust, <a href="https://waffles.space/ascii-gen/">now running</a> in pure Wasm.</li>
-                            <li>A <a href="https://github.com/wafflespeanut/AISH">CSS injector</a> that slowly injects a stylesheet into a style element in the DOM and gets rendered in realtime.</li>
-                            <li>A <a href="https://github.com/wafflespeanut/flight-2016">responsive website</a> for our college symposium without the use of any external libraries.</li>
-                            <li>A terminal based <a href="https://github.com/wafflespeanut/free-fall">2D-ASCII game</a> (in Rust) which makes use of terminal’s raw mode, interacting with Unix C APIs for polling keystroke inputs, and prints thousands of characters frame by frame to indicate motion.</li>
-                            <li>A <a href="https://github.com/wafflespeanut/biographer">private diary</a> (in Python), which allows users to write their everyday stories, view them, or search through them later. It makes use of a simple shifting cipher to encrypt/decrypt the contents. It also uses a Rust library (through FFI) for searching.</li>
-                            <li>A <a href="https://github.com/wafflespeanut/rust-catalog">"file-backed" map</a> (in Rust) which uses binary search and file seeking to insert/get key-value pairs.</li>
-                        </ul>
-                    </li>
-                </ul>
-            </div>
-        </section>
-    </main>
+  <main>
+    <header>
+      <h1>Ravi Shankar</h1>
+    </header>
+    <section id="social-links">
+      <div id="email-icon" class="social-icon">
+        <a href="mailto:wafflespeanut@gmail.com">
+          <img src="../assets/icons/email.png" />
+          <span>wafflespeanut [at] gmail</span>
+        </a>
+      </div>
+      <div id="twitter-icon" class="social-icon">
+        <a href="https://twitter.com/wafflespeanut" target="_blank">
+          <img src="../assets/icons/twitter.png" />
+          <span>@wafflespeanut</span>
+        </a>
+      </div>
+      <div id="github-icon" class="social-icon">
+        <a href="https://github.com/wafflespeanut" target="_blank">
+          <img src="../assets/icons/github.png" />
+          <span>wafflespeanut</span>
+        </a>
+      </div>
+      <div id="linkedin-icon" class="social-icon">
+        <a href="https://in.linkedin.com/in/wafflespeanut" target="_blank">
+          <img src="../assets/icons/linkedin.png" />
+          <span>wafflespeanut</span>
+        </div>
+      </a>
+    </section>
+    <section>
+      <h2>Programming Skills:</h2>
+      <p>
+        <strong>Languages:</strong>
+        <span>Rust, Python, Swift, HTML5, TypeScript, Go, Bash.</span>
+      </p>
+      <p>
+        <strong>Technologies:</strong>
+        <span>Unix (OS X, Ubuntu), Git, REST, Vue JS, Docker, Kubernetes.</span>
+      </p>
+      <p>
+        <strong>Practices:</strong>
+        <span>Version-controlled, Agile, Test-driven.</span>
+      </p>
+    </section>
+    <section>
+      <h2>Experience:</h2>
+      <div class="sub-section">
+        <strong>Senior Software Engineer</strong>
+        <div>
+          <em>Genome</em>
+          <em class="timespan">April, 2019 - Present</em>
+        </div>
+        <div>
+          <ul class="summary-bullet">
+            <li>Initiated and incrementally ported the backend pipelines in Python to Go.</li>
+            <li>Helped with building an analytics engine (in Python and Rust) for monitoring AWS services.</li>
+            <li>Booted <a href="https://github.com/wafflespeanut/paperclip">paperclip</a> - an open source OpenAPI tooling library for type-safe compile-time checked HTTP APIs in Rust. As of now, it supports generating client library and CLI for APIs based on an OpenAPI v2 spec and offers a plugin for actix-web framework to automatically host an OpenAPI v2 spec.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="sub-section">
+        <strong>Cofounder / Engineer</strong>
+        <div>
+          <em>Naamio</em>
+          <em class="timespan">October, 2018 - March, 2019</em>
+        </div>
+        <div>
+          <ul class="summary-bullet">
+            <li>Built an automated platform-agnostic operator for managing Kubernetes clusters without having to rely on a cloud provider's Kubernetes service - it supports autoscaling nodes on demand, partitioning/attaching/cleaning up disks, creating/managing load balancers and deploying apps using Helm charts without the use of <code>kubectl</code> / <code>helm</code> CLI.</li>
+            <li>Helped a client migrate their apps to Kubernetes clusters (in Azure) using the operator.</li>
+            <li>Wrote a tool for automating deployment of internal web apps through CI for review, staging and production.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="sub-section">
+        <strong>Full-stack Developer</strong>
+        <div>
+          <em>Omnijar Studio</em>
+          <em class="timespan">October, 2017 - September, 2018</em>
+        </div>
+        <div>
+          <ul class="summary-bullet">
+            <li>Contributed to building a scalable e-commerce platform from scratch (in Swift, backed by CockroachDB) gated by an OAuth2 service with RBAC (in Go).</li>
+            <li>Implemented multiple features for the storefront and admin apps (in VueJS) for the e-commerce platform.</li>
+            <li>Wrote a <a href="https://github.com/OmnijarBots/beryllium">bot library for Wire</a> messaging app (in Rust).</li>
+          </ul>
+        </div>
+      </div>
+      <div class="sub-section">
+        <strong>Full-stack Developer</strong>
+        <div>
+          <em>Surematics</em>
+          <em class="timespan">June - August, 2017</em>
+        </div>
+        <div>
+          <ul class="summary-bullet">
+            <li>Contracted for a startup that develops applications for insurance brokers, which participated in the YCombinator summer (S-17) batch.</li>
+            <li>Wrote backend services for chat, auth and crypto (in Rust), worked on the webapp (pure TS) and took care of deployments in a Kubernetes cluster.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="sub-section">
+        <strong>Backend Developer</strong>
+        <div>
+          <em>Genome Life Sciences</em>
+          <em class="timespan">January, 2016 - February, 2018</em>
+        </div>
+        <div>
+          <ul class="summary-bullet">
+            <li>Wrote utilities in Rust for bulk parallel processing of chromosome and DNA sequence data in FASTQ, SAM and VCF file formats.</li>
+            <li>
+              Notable tools:
+              <ul class="summary-bullet">
+                <li>A species finder that matches and maps sample DNA data to find known species.</li>
+                <li>A sequence aligner which uses Burrows-Wheeler transform and FM-index to backtrack and map DNA sequences to the human reference genome. Its backend is now <a href="https://github.com/wafflespeanut/nucleic-acid">open-source</a> and I've <a href="https://blog.waffles.space/2017/02/12/exploring-the-human-genome-part-1/">blogged</a> about its basics.</li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
+    <section>
+      <h2>Open source contributions:</h2>
+      <div class="sub-section">
+        <h3>Servo</h3>
+        <ul class="summary-bullet">
+          <li>Contributor and <a href="https://blog.servo.org/2016/01/11/twis-47/">reviewer</a> for <a href="https://github.com/servo/servo">Servo browser engine project</a> (2015 - 2017).</li>
+          <li>I worked on the style system (as part of Quantum CSS project), python-based build system, and mentored newcomers. Apart from helping folks in IRC and Github issues, I've authored <a href="https://github.com/servo/servo/commits?author=wafflespeanut">more than 100 commits</a> and reviewed <a href="https://github.com/servo/servo/pulls?q=is:pr+assignee:wafflespeanut+is:closed">more than 200 pull requests</a>.</li>
+          <li>Implemented code for parsing and serialization of CSS <code>grid</code> shorthand and longhand properties.</li>
+          <li>Wrote <a href="https://github.com/servo/highfive/commits?author=wafflespeanut">handlers</a> for <a href="https://github.com/servo/highfive">highfive</a> (a bot that responds to Github webhook payloads by welcoming newcomers, assign/tag issues and pull requests, post build failures, etc.) and a "mark and sweep" <a href="https://github.com/servo/highfive/pull/115">JSON cleaner</a> for its tests.</li>
+          <li>Created a <a href="https://github.com/servo-automation/servo-wpt">watcher</a> that tests Servo builds in a machine, analyzes the logs, keeps track of "rr" recordings of intermittent failures, and uses the Github API to file issues or comments to notify the people who work on such issues.</li>
+          <li>Wrote a <a href="https://github.com/wafflespeanut/rust-sorty">compiler plugin</a> for checking sorted order of declaration statements.</li>
+        </ul>
+        <h3>Other</h3>
+        <ul class="summary-bullet">
+          <li>Wrote a <a href="https://github.com/servo-automation/highfive">Github app</a> (bot) which provides a friendly welcoming environment to open-source contributors. It tracks issues and pull requests, and performs actions such as assigning, labelling and commenting on issues and pull requests (using the Github API).</li>
+          <li>Occassional contributor to the <a href="https://github.com/rust-lang/rust">Rust programming language</a>, its documentation and related tooling.</li>
+          <li><a href="https://mozillians.org/en-US/u/wafflespeanut">Mozillian</a> since the summer of 2015.</li>
+        </ul>
+      </div>
+    </section>
+    <section>
+      <h2>Miscellaneous:</h2>
+      <div class="sub-section">
+        <ul class="summary-bullet">
+          <li>Organizer for the <a href="https://www.meetup.com/mad-rs/">Rust Chennai meetup</a>.</li>
+          <li><a href="https://teams.railsgirlssummerofcode.org/users/2358">RGSoC Coach</a> (primarily for Rust/Servo).</li>
+          <li>Blogger since 2013 at <a href="https://wafflescrazypeanut.wordpress.com/">wafflescrazypeanut.wordpress.com</a> and now, at <a href="https://blog.waffles.space/">blog.waffles.space</a>.</li>
+          <li><a href="https://physics.stackexchange.com/users/11062">Contributor and reviewer</a> of posts at Physics Stack Exchange for two years (2013-2015).</li>
+          <li>
+            <span>I also play with code and make some cool stuff in my free time:</span>
+            <ul class="summary-bullet">
+              <li>An <a href="https://github.com/wafflespeanut/ascii-art-generator">ASCII Art Generator</a> for images which <a href="https://blog.waffles.space/2017/03/01/ascii-sketch/">extracts the necessary details</a> for generating the ASCII sketch - <a href="https://github.com/wafflespeanut/ascii-art-generator/tree/0b519b00b43eadb8500db30c304b2b87ad7eb159">written in Python</a>, later ported to Rust, <a href="https://waffles.space/ascii-gen/">now running</a> in pure Wasm.</li>
+              <li>A <a href="https://github.com/wafflespeanut/AISH">CSS injector</a> that slowly injects a stylesheet into a style element in the DOM and gets rendered in realtime.</li>
+              <li>A <a href="https://github.com/wafflespeanut/flight-2016">responsive website</a> for our college symposium without the use of any external libraries.</li>
+              <li>A terminal based <a href="https://github.com/wafflespeanut/free-fall">2D-ASCII game</a> (in Rust) which makes use of terminal’s raw mode, interacting with Unix C APIs for polling keystroke inputs, and prints thousands of characters frame by frame to indicate motion.</li>
+              <li>A <a href="https://github.com/wafflespeanut/biographer">private diary</a> (in Python), which allows users to write their everyday stories, view them, or search through them later. It makes use of a simple shifting cipher to encrypt/decrypt the contents. It also uses a Rust library (through FFI) for searching.</li>
+              <li>A <a href="https://github.com/wafflespeanut/rust-catalog">"file-backed" map</a> (in Rust) which uses binary search and file seeking to insert/get key-value pairs in disk.</li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </section>
+  </main>
 </body>
 </html>
