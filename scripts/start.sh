@@ -13,7 +13,7 @@ docker run --name static \
     -v /home/core/config:/config \
     -e SOURCE=/source \
     -e PRIVATE_SOURCE=/private \
-    -e CONFIG=/config/static_server_config.json -d \
+    -e CONFIG=/config/static_server_config.json \
     -e LOG_LEVEL=info \
     -e SMS_RECEIVER=${SMS_RECEIVER} \
     -e AWS_REGION=${AWS_REGION} \
@@ -22,7 +22,15 @@ docker run --name static \
     -e TWILIO_ACCOUNT=${TWILIO_ACCOUNT} \
     -e TWILIO_TOKEN=${TWILIO_TOKEN} \
     -e TWILIO_SENDER=${TWILIO_SENDER} \
-    wafflespeanut/static-server
+    -d wafflespeanut/static-server
+
+echo 'Launching ace game!'
+docker run --name ace-away \
+    --cpus="0.25" \
+    --memory="128m" \
+    --restart always \
+    --network waffles \
+    -d wafflespeanut/ace-away
 
 echo 'Deploying Nginx proxy...'
 docker run --name nginx \
@@ -32,4 +40,5 @@ docker run --name nginx \
     -v /home/core/config/default.conf:/etc/nginx/conf.d/default.conf \
     -v /home/core/letsencrypt/live/waffles.space:/etc/certs \
     -v /home/core/letsencrypt/archive:/archive \
-    -p 80:80 -p 443:443 -d nginx:alpine
+    -p 80:80 -p 443:443 \
+    -d nginx:alpine
