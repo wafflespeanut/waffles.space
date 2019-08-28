@@ -5,6 +5,7 @@ docker network create waffles
 while read line; do eval "export $line"; done < /home/core/server_env
 
 echo 'Launching static file server...'
+docker pull wafflespeanut/static-server
 docker run --name static \
     --restart always \
     --network waffles \
@@ -25,6 +26,7 @@ docker run --name static \
     -d wafflespeanut/static-server
 
 echo 'Launching ace game!'
+docker pull wafflespeanut/ace-away
 docker run --name ace-away \
     --cpus="0.25" \
     --memory="128m" \
