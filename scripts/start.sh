@@ -40,7 +40,7 @@ docker run --name nginx \
     --network waffles \
     -v /home/core/config/nginx.conf:/etc/nginx/nginx.conf \
     -v /home/core/config/default.conf:/etc/nginx/conf.d/default.conf \
-    -v /home/core/letsencrypt/live/waffles.space:/etc/certs \
+    -v /home/core/self_signed:/etc/certs \
     -v /home/core/letsencrypt/archive:/archive \
     -p 80:80 -p 443:443 \
     -d nginx:alpine
