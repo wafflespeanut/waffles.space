@@ -69,7 +69,7 @@ pub fn start() {
         watcher.start_watching();
     });
 
-    let mut app = App::new(());
+    let mut app = App::with_state(());
     info!(
         "Initializing staticfile handler to point to {}",
         &*SERVE_PATH_ROOT
@@ -98,5 +98,5 @@ pub fn start() {
     app.middleware(PrivateMiddleware { sender });
     app.at("/").get(static_file.clone());
     app.at("/*").get(static_file);
-    app.serve(&*DEFAULT_ADDRESS).expect("serving");
+    app.run(&*DEFAULT_ADDRESS).expect("serving");
 }

@@ -1,5 +1,3 @@
-#![feature(async_await, await_macro)]
-
 #[macro_use]
 extern crate lazy_static;
 #[macro_use]

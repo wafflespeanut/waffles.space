@@ -8,7 +8,7 @@ before_install:
 
 script:
   - cd server
-  - docker run --rm -it -v "$(pwd)":/home/rust/src ekidd/rust-musl-builder:nightly-2019-04-25 cargo build --release
+  - docker run --rm -it -v "$(pwd)":/home/rust/src ekidd/rust-musl-builder:nightly-2019-09-05 cargo build --release
   - docker build -t wafflespeanut/static-server .
 
 after_success:

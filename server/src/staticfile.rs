@@ -101,7 +101,7 @@ impl StaticFile {
         };
 
         // Caching-related thingies.
-        let mime = mime_guess::guess_mime_type(path);
+        let mime = mime_guess::from_path(path).first_or_octet_stream();
         let mime_str = mime.to_string();
         let last_modified = meta.modified()?;
         let size = meta.len();
@@ -132,7 +132,7 @@ impl StaticFile {
                         ty,
                         percent_encoding::utf8_percent_encode(
                             name,
-                            percent_encoding::DEFAULT_ENCODE_SET
+                            percent_encoding::NON_ALPHANUMERIC
                         )
                     )
                     .into(),
