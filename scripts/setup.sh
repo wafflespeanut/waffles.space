@@ -36,8 +36,10 @@ cp -r _site/source/* .
 cp -r _site/nginx/* ~/config/
 
 echo 'Updating systemd...'
-sudo cp _site/scripts/coreos-systemd/boot.service /etc/systemd/system/
+sudo cp _site/scripts/coreos-systemd/*.service /etc/systemd/system/
 sudo systemctl enable /etc/systemd/system/boot.service
+sudo systemctl enable /etc/systemd/system/restart.service
 sudo systemctl start boot.service
+sudo systemctl start restart.service
 
 rm -rf _site
