@@ -1778,7 +1778,7 @@ dependencies = [
 [[package]]
 name = "tide"
 version = "0.2.0"
-source = "git+https://github.com/rustasync/tide#8281f3844ba00e7f02799212b4b8e12c86d6feb8"
+source = "git+https://github.com/rustasync/tide#dfbaf72a853577bcc8ef3a6956e375722d1e2903"
 dependencies = [
  "fnv 1.0.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "futures-preview 0.3.0-alpha.19 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1798,7 +1798,7 @@ dependencies = [
 [[package]]
 name = "tide-cookies"
 version = "0.2.0"
-source = "git+https://github.com/rustasync/tide#8281f3844ba00e7f02799212b4b8e12c86d6feb8"
+source = "git+https://github.com/rustasync/tide#dfbaf72a853577bcc8ef3a6956e375722d1e2903"
 dependencies = [
  "cookie 0.12.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "futures-preview 0.3.0-alpha.19 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1810,11 +1810,12 @@ dependencies = [
 [[package]]
 name = "tide-core"
 version = "0.2.0"
-source = "git+https://github.com/rustasync/tide#8281f3844ba00e7f02799212b4b8e12c86d6feb8"
+source = "git+https://github.com/rustasync/tide#dfbaf72a853577bcc8ef3a6956e375722d1e2903"
 dependencies = [
  "futures-preview 0.3.0-alpha.19 (registry+https://github.com/rust-lang/crates.io-index)",
  "http 0.1.18 (registry+https://github.com/rust-lang/crates.io-index)",
  "http-service 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "log 0.4.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "route-recognizer 0.1.13 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 1.0.101 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_json 1.0.40 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1823,7 +1824,7 @@ dependencies = [
 [[package]]
 name = "tide-cors"
 version = "0.2.0"
-source = "git+https://github.com/rustasync/tide#8281f3844ba00e7f02799212b4b8e12c86d6feb8"
+source = "git+https://github.com/rustasync/tide#dfbaf72a853577bcc8ef3a6956e375722d1e2903"
 dependencies = [
  "futures-preview 0.3.0-alpha.19 (registry+https://github.com/rust-lang/crates.io-index)",
  "http 0.1.18 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1834,7 +1835,7 @@ dependencies = [
 [[package]]
 name = "tide-forms"
 version = "0.1.0"
-source = "git+https://github.com/rustasync/tide#8281f3844ba00e7f02799212b4b8e12c86d6feb8"
+source = "git+https://github.com/rustasync/tide#dfbaf72a853577bcc8ef3a6956e375722d1e2903"
 dependencies = [
  "futures-preview 0.3.0-alpha.19 (registry+https://github.com/rust-lang/crates.io-index)",
  "http 0.1.18 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1849,7 +1850,7 @@ dependencies = [
 [[package]]
 name = "tide-headers"
 version = "0.1.0"
-source = "git+https://github.com/rustasync/tide#8281f3844ba00e7f02799212b4b8e12c86d6feb8"
+source = "git+https://github.com/rustasync/tide#dfbaf72a853577bcc8ef3a6956e375722d1e2903"
 dependencies = [
  "futures-preview 0.3.0-alpha.19 (registry+https://github.com/rust-lang/crates.io-index)",
  "http 0.1.18 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1860,7 +1861,7 @@ dependencies = [
 [[package]]
 name = "tide-log"
 version = "0.1.0"
-source = "git+https://github.com/rustasync/tide#8281f3844ba00e7f02799212b4b8e12c86d6feb8"
+source = "git+https://github.com/rustasync/tide#dfbaf72a853577bcc8ef3a6956e375722d1e2903"
 dependencies = [
  "futures-preview 0.3.0-alpha.19 (registry+https://github.com/rust-lang/crates.io-index)",
  "http 0.1.18 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1871,7 +1872,7 @@ dependencies = [
 [[package]]
 name = "tide-querystring"
 version = "0.1.0"
-source = "git+https://github.com/rustasync/tide#8281f3844ba00e7f02799212b4b8e12c86d6feb8"
+source = "git+https://github.com/rustasync/tide#dfbaf72a853577bcc8ef3a6956e375722d1e2903"
 dependencies = [
  "futures-preview 0.3.0-alpha.19 (registry+https://github.com/rust-lang/crates.io-index)",
  "http 0.1.18 (registry+https://github.com/rust-lang/crates.io-index)",
