@@ -16,7 +16,7 @@ use uuid::Uuid;
 // TODO: This is old and huge. Need to refactor and add tests!
 
 const WATCHER_SLEEP_DURATION: Duration = Duration::from_millis(1000);
-const WATCHER_SMS_DURATION: Duration = Duration::from_secs(30);
+const WATCHER_SMS_DURATION: Duration = Duration::from_secs(5 * 60);
 const SMS_LIMIT: usize = 140; // 160 GSM chars or 140 ASCII chars
 
 /// Indicates the lifetime of this token.
