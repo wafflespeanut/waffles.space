@@ -1,14 +1,11 @@
+use async_std::fs::File;
+use async_std::io::BufReader;
 use bytes::Bytes;
-use futures::compat::*;
-use futures::future::FutureObj;
-use futures_fs::FsPool;
-use http::{
-    header::{self, HeaderMap},
-    StatusCode,
-};
-use http_service::Body;
+use futures::future::{BoxFuture, FutureExt};
+use futures::io::Cursor;
+use http::{header, StatusCode};
 use httpdate::HttpDate;
-use tide::{Context, Endpoint, Response};
+use tide::Response;
 
 use std::path::{Component, Path, PathBuf};
 use std::time::UNIX_EPOCH;
@@ -17,10 +14,6 @@ use std::{fs, io};
 const DEFAULT_4XX_BODY: &[u8] = b"Oops! I can't find what you're looking for..." as &[_];
 const DEFAULT_5XX_BODY: &[u8] = b"I'm broken, apparently." as &[_];
 
-lazy_static! {
-    static ref FS_POOL: FsPool = FsPool::default();
-}
-
 /// Simple static file handler for Tide.
 #[derive(Clone)]
 pub struct StaticFile {
@@ -28,27 +21,6 @@ pub struct StaticFile {
     pub body_4xx: Vec<u8>,
     pub body_5xx: Vec<u8>,
     root: PathBuf,
-}
-
-impl<S> Endpoint<S> for StaticFile {
-    type Fut = FutureObj<'static, Response>;
-
-    fn call(&self, ctx: Context<S>) -> Self::Fut {
-        let path = ctx.uri().path();
-        let resp = match self.stream_bytes(path, ctx.headers()) {
-            Ok(r) => r,
-            Err(e) => {
-                error!("{:?}", e);
-                http::Response::builder()
-                    .status(StatusCode::INTERNAL_SERVER_ERROR)
-                    .header(header::CONTENT_TYPE, mime::TEXT_HTML.to_string())
-                    .body(Bytes::from(&self.body_5xx[..]).into())
-                    .expect("failed to build static response?")
-            }
-        };
-
-        FutureObj::new(Box::new(async move { resp }))
-    }
 }
 
 impl StaticFile {
@@ -69,41 +41,46 @@ impl StaticFile {
     // FIXME: Refactor and add tests
 
     /// Stream file!
-    fn stream_bytes(&self, actual_path: &str, headers: &HeaderMap) -> Result<Response, io::Error> {
-        let path = &self.get_path(actual_path);
-        let mut response = http::Response::builder();
-        let meta = fs::metadata(path).ok();
+    pub fn stream_bytes<'a>(&'a self, actual_path: &'a str, if_modified_since: Option<&'a str>, if_none_match: Option<&'a str>) -> BoxFuture<'a, Result<Response, io::Error>> {
+        let path = self.get_path(actual_path);
+        let mut response = Response::new(StatusCode::OK.as_u16());
+        let meta = fs::metadata(&path).ok();
         // Check if the path exists and handle if it's a directory containing `index.html`
         if meta.is_some() && meta.as_ref().map(|m| !m.is_file()).unwrap_or(false) {
             // Redirect if path is a dir and URL doesn't end with "/"
             if !actual_path.ends_with("/") {
-                return Ok(response
-                    .status(StatusCode::MOVED_PERMANENTLY)
-                    .header(header::LOCATION, String::from(actual_path) + "/")
-                    .body(Body::empty())
-                    .expect("failed to build redirect response?"));
+                return async move {
+                    Ok(response
+                    .set_status(StatusCode::MOVED_PERMANENTLY)
+                    .set_header(header::LOCATION.as_str(), String::from(actual_path) + "/")
+                    .body(futures::io::empty()))
+                }.boxed()
             }
 
             let index = Path::new(actual_path).join("index.html");
-            return self.stream_bytes(&*index.to_string_lossy(), headers);
+            return async move {
+                self.stream_bytes(&*index.to_string_lossy(), if_modified_since, if_none_match).await
+            }.boxed();
         }
 
         // If the file doesn't exist, then bail out.
         let meta = match meta {
             Some(m) => m,
-            None => {
-                return Ok(response
-                    .status(StatusCode::NOT_FOUND)
-                    .header(header::CONTENT_TYPE, mime::TEXT_HTML.to_string())
-                    .body(Bytes::from(&self.body_4xx[..]).into())
-                    .expect("failed to build static response?"))
-            }
+            None => return async move {
+                Ok(response
+                .set_status(StatusCode::NOT_FOUND)
+                .set_header(header::CONTENT_TYPE.as_str(), mime::TEXT_HTML.as_ref())
+                .body(Cursor::new(Bytes::from(self.body_4xx.clone()))))
+            }.boxed(),
         };
 
         // Caching-related thingies.
-        let mime = mime_guess::from_path(path).first_or_octet_stream();
-        let mime_str = mime.to_string();
-        let last_modified = meta.modified()?;
+        let mime = mime_guess::from_path(&path).first_or_octet_stream();
+        let last_modified = match meta.modified() {
+            Ok(m) => m,
+            Err(e) => return async move { Err(e) }.boxed(),
+        };
+
         let size = meta.len();
         let etag = format!(
             "{:x}-{:x}",
@@ -114,13 +91,13 @@ impl StaticFile {
             size
         );
 
-        response
-            .header(
-                header::LAST_MODIFIED,
+        response = response
+            .set_header(
+                header::LAST_MODIFIED.as_str(),
                 httpdate::fmt_http_date(last_modified),
             )
-            .header(header::ETAG, etag.clone())
-            .header(header::CONTENT_DISPOSITION, {
+            .set_header(header::ETAG.as_str(), etag.as_str())
+            .set_header(header::CONTENT_DISPOSITION.as_str(), {
                 let ty = match mime.type_() {
                     mime::IMAGE | mime::TEXT | mime::VIDEO => "inline",
                     _ => "attachment",
@@ -140,13 +117,6 @@ impl StaticFile {
                 }
             });
 
-        let if_modified_since = headers
-            .get(header::IF_MODIFIED_SINCE)
-            .and_then(|x| x.to_str().ok());
-        let if_none_match = headers
-            .get(header::IF_NONE_MATCH)
-            .and_then(|x| x.to_str().ok());
-
         let respond_cache = if let Some(etags) = if_none_match {
             etags.split(',').map(str::trim).any(|x| x == etag)
         } else {
@@ -157,28 +127,26 @@ impl StaticFile {
         };
 
         if respond_cache {
-            return Ok(response
-                .status(StatusCode::NOT_MODIFIED)
-                .body(Body::empty())
-                .expect("failed to build cache response?"));
+            return async move {
+                Ok(response
+                    .set_status(StatusCode::NOT_MODIFIED)
+                    .body(futures::io::empty()))
+            }.boxed()
         }
 
         // We're done with the checks. Stream file!
-        response
-            .status(StatusCode::OK)
-            .header(header::CONTENT_TYPE, mime_str.as_str())
-            .header(header::CONTENT_LENGTH, size);
+        response = response
+            .set_status(StatusCode::OK)
+            .set_header(header::CONTENT_LENGTH.as_str(), size.to_string());
 
-        if size == 0 {
-            return Ok(response
-                .body(Body::empty())
-                .expect("failed to build empty response?"));
-        }
+        async move {
+            if size == 0 {
+                return Ok(response.body(futures::io::empty()).set_mime(mime));
+            }
 
-        let stream = FS_POOL.read(PathBuf::from(path), Default::default());
-        Ok(response
-            .body(Body::from_stream(stream.compat()))
-            .expect("invalid request?"))
+            let fd = BufReader::new(File::open(path).await?);
+            Ok(response.body(fd).set_mime(mime))
+        }.boxed()
     }
 
     /// Percent-decode, normalize path components and return the final path joined with root.

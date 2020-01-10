@@ -1,10 +1,13 @@
 use crate::staticfile::StaticFile;
 use crate::util;
 use crate::watcher::PrivateWatcher;
+use bytes::Bytes;
 use futures::future::BoxFuture;
+use futures::io::Cursor;
+use http::{header, StatusCode};
 use tide::{
     middleware::{Middleware, Next},
-    App, Context, Response,
+    Request, Response, Server,
 };
 use uuid::Uuid;
 
@@ -32,10 +35,10 @@ impl<S> Middleware<S> for PrivateMiddleware
 where
     S: 'static,
 {
-    fn handle<'a>(&'a self, ctx: Context<S>, next: Next<'a, S>) -> BoxFuture<'a, Response> {
-        let path = ctx.uri().path();
+    fn handle<'a>(&'a self, req: Request<S>, next: Next<'a, S>) -> BoxFuture<'a, Response> {
+        let path = req.uri().path();
         if !path.starts_with(PRIVATE_PATH_PREFIX) {
-            return next.run(ctx);
+            return next.run(req);
         }
 
         let mut path_iter = path.split("/");
@@ -49,11 +52,30 @@ where
             let _ = self.sender.send((uuid, sub_path.into()));
         }
 
-        next.run(ctx)
+        next.run(req)
     }
 }
 
-pub fn start() {
+async fn fetch_file(req: Request<StaticFile>) -> Response {
+    let path = req.uri().path();
+    let state = req.state();
+
+    let if_modified_since = req.header(header::IF_MODIFIED_SINCE.as_str());
+    let if_none_match = req.header(header::IF_NONE_MATCH.as_str());
+
+    match state.stream_bytes(path, if_modified_since, if_none_match).await {
+        Ok(r) => r,
+        Err(e) => {
+            let reader = Cursor::new(Bytes::from(state.body_5xx.clone()));
+            error!("{:?}", e);
+            Response::new(StatusCode::INTERNAL_SERVER_ERROR.as_u16())
+                .set_header(header::CONTENT_TYPE.as_str(), mime::TEXT_HTML.as_ref())
+                .body(reader)
+        }
+    }
+}
+
+pub async fn start() {
     util::prepare_logger();
     util::create_dir_if_not_exists(&*PRIVATE_PATH_ROOT);
     util::create_dir_if_not_exists(&*SERVE_PATH_ROOT);
@@ -69,7 +91,6 @@ pub fn start() {
         watcher.start_watching();
     });
 
-    let mut app = App::with_state(());
     info!(
         "Initializing staticfile handler to point to {}",
         &*SERVE_PATH_ROOT
@@ -95,8 +116,9 @@ pub fn start() {
         }
     }
 
+    let mut app = Server::with_state(static_file);
     app.middleware(PrivateMiddleware { sender });
-    app.at("/").get(static_file.clone());
-    app.at("/*").get(static_file);
-    app.run(&*DEFAULT_ADDRESS).expect("serving");
+    app.at("/").get(fetch_file);
+    app.at("/*").get(fetch_file);
+    app.listen(&*DEFAULT_ADDRESS).await.expect("serving");
 }

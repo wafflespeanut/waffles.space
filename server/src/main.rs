@@ -11,6 +11,7 @@ mod staticfile;
 mod util;
 mod watcher;
 
-fn main() {
-    server::start();
+#[runtime::main(runtime_tokio::Tokio)]
+async fn main() {
+    server::start().await;
 }
