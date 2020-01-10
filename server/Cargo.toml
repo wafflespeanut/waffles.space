@@ -5,14 +5,14 @@ authors = ["Ravi Shankar <wafflespeanut@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-bytes = "0.4"
+bytes = "0.5"
 chrono = { version = "0.4", features = ["serde"] }
-crossbeam-channel = "0.3"
+crossbeam-channel = "0.4"
 env_logger = "0.7"
 futures-fs = "0.0"
 futures-preview = { version = "0.3.0-alpha.19", features = ["compat"] }
 http = "0.2"
-http-service = "0.3"
+http-service = "0.4"
 httpdate = "0.3"
 lazy_static = "1.4"
 log = "0.4"
@@ -21,11 +21,11 @@ mime_guess = "2.0.1"
 notify = "4.0"
 percent-encoding = "2.1"
 reqwest = "0.9"
-rusoto_core = "0.40.0"
-rusoto_credential = "0.40.0"
-rusoto_sns = "0.40.0"
+rusoto_core = "0.42.0"
+rusoto_credential = "0.42.0"
+rusoto_sns = "0.42.0"
 serde = "1.0"
 serde_json = "1.0"
 serde_derive = "1.0"
-tide = { git = "https://github.com/rustasync/tide" }
-uuid = { version = "0.7", features = ["v4", "serde"] }
+tide = { git = "https://github.com/http-rs/tide" }
+uuid = { version = "0.8", features = ["v4", "serde"] }
