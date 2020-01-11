@@ -1,10 +1,7 @@
-use crate::staticfile::StaticFile;
+use crate::staticfile::{Responder, StaticFile};
 use crate::util;
 use crate::watcher::PrivateWatcher;
-use bytes::Bytes;
 use futures::future::BoxFuture;
-use futures::io::Cursor;
-use http::{header, StatusCode};
 use tide::{
     middleware::{Middleware, Next},
     Request, Response, Server,
@@ -57,22 +54,8 @@ where
 }
 
 async fn fetch_file(req: Request<StaticFile>) -> Response {
-    let path = req.uri().path();
-    let state = req.state();
-
-    let if_modified_since = req.header(header::IF_MODIFIED_SINCE.as_str());
-    let if_none_match = req.header(header::IF_NONE_MATCH.as_str());
-
-    match state.stream_bytes(path, if_modified_since, if_none_match).await {
-        Ok(r) => r,
-        Err(e) => {
-            let reader = Cursor::new(Bytes::from(state.body_5xx.clone()));
-            error!("{:?}", e);
-            Response::new(StatusCode::INTERNAL_SERVER_ERROR.as_u16())
-                .set_header(header::CONTENT_TYPE.as_str(), mime::TEXT_HTML.as_ref())
-                .body(reader)
-        }
-    }
+    let responder = Responder::from(&req);
+    responder.stream().await
 }
 
 pub async fn start() {
