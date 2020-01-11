@@ -103,7 +103,7 @@ impl<'a> Responder<'a> {
     }
 
     async fn stream_(self) -> Result<Response, io::Error> {
-        let meta = fs::metadata(self.actual_path).await.ok();
+        let meta = fs::metadata(&self.path).await.ok();
         // Check if the path exists and handle if it's a directory containing `index.html`
         if meta.is_some() && meta.as_ref().map(|m| !m.is_file()).unwrap_or(false) {
             // Redirect if path is a dir and URL doesn't end with "/"
@@ -119,8 +119,10 @@ impl<'a> Responder<'a> {
             }
 
             let index = Path::new(self.actual_path).join("index.html");
+            let actual_path = &*index.to_string_lossy();
             return Ok(Responder {
-                actual_path: &*index.to_string_lossy(),
+                actual_path,
+                path: self.state.get_path(actual_path),
                 ..self
             }
             .stream()
