@@ -5,8 +5,8 @@ Requires=docker.service
 
 [Service]
 Type=oneshot
-EnvironmentFile=/home/core/server_env
-ExecStart=-/usr/bin/sh -c '/home/core/restart.sh'
+EnvironmentFile=/root/server_env
+ExecStart=-/bin/sh -c '/root/restart.sh'
 
 [Install]
 WantedBy=multi-user.target
