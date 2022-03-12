@@ -1,35 +1,36 @@
+@media screen and (min-width: 900px) {
+  main {
+    font-size: 1.2em;
+  }
 
-main {
-  font-size: 1.2em;
-}
+  h1 {
+    font-size: 48px;
+  }
 
-h1 {
-  font-size: 48px;
-}
+  h2 {
+    font-size: 36px;
+  }
 
-h2 {
-  font-size: 36px;
-}
+  h3 {
+    font-size: 32px;
+  }
 
-h3 {
-  font-size: 32px;
-}
+  div, li, p, span, strong {
+    font-size: 24px;
+  }
 
-div, li, p, span, strong {
-  font-size: 24px;
-}
+  #social-links {
+    grid-template-rows: 1fr;
+    row-gap: 0;
+    grid-template-columns: repeat(4, 1fr);
+  }
 
-#social-links {
-  grid-template-rows: 1fr;
-  row-gap: 0;
-  grid-template-columns: repeat(4, 1fr);
-}
+  .social-icon {
+    text-align: center;
+  }
 
-.social-icon {
-  text-align: center;
-}
-
-.social-icon img {
-  width: auto;
-  max-height: 5vh;  /* Should be constrained to `100%` and actual `height` set to some relative unit but Chrome fucks things up */
+  .social-icon img {
+    width: auto;
+    max-height: 4vh;  /* Should be constrained to `100%` and actual `height` set to some relative unit but Chrome fucks things up */
+  }
 }

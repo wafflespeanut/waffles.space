@@ -9,8 +9,8 @@
   <meta name="viewport" content="width=device-width, maximum-scale=1, minimum-scale=1" />
   <link href="https://fonts.googleapis.com/css?family=Roboto:300" rel="stylesheet" type="text/css">
   <link href="https://fonts.googleapis.com/css?family=Open+Sans:300" rel="stylesheet" type="text/css">
-  <link rel="stylesheet" media="only screen" href="stylesheets/handheld.css" type="text/css" />
-  <link rel="stylesheet" media="only screen and (min-width: 800px)" href="stylesheets/screen.css" type="text/css" />
+  <link rel="stylesheet" href="stylesheets/handheld.css" type="text/css" />
+  <link rel="stylesheet" href="stylesheets/screen.css" type="text/css" />
   <link rel="icon" type="image/png" href="../assets/icons/favicon.png" />
   <title>Resume</title>
 </head>
@@ -62,6 +62,21 @@
     </section>
     <section>
       <h2>Experience:</h2>
+      <div class="sub-section">
+        <strong>Backend Engineer</strong>
+        <div>
+          <em>Hasty.ai</em>
+          <em class="timespan">November, 2019 - October, 2021</em>
+        </div>
+        <div>
+          <ul class="summary-bullet">
+            <li>Initiated and migrated a number of functionality from Python backend monolith to Go/Python microservices (image processing, authentication/authorization with rate limiting, async jobs processing, etc.).</li>
+            <li>Implemented/optimized major product features in backend API - credit system, long running jobs, video processing, data replication/maintenance, webhooks, etc.</li>
+            <li>Added a caching layer for efficiently triggering training/prediction services which gave a performance boost.</li>
+            <li>Added wasm support for frontend for efficiently encoding/decoding image data from backend API.</li>
+          </ul>
+        </div>
+      </div>
       <div class="sub-section">
         <strong>Senior Software Engineer</strong>
         <div>
