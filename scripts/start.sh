@@ -34,6 +34,20 @@ docker run --name ace-away \
     --network waffles \
     -d wafflespeanut/ace-away
 
+# echo 'Launching trader...'
+# docker pull wafflespeanut/teletrader
+# docker run --name trader \
+#     --restart always \
+#     --network waffles \
+#     -v /root/config:/config \
+#     -e API_ID=${TELEGRAM_ID} \
+#     -e API_HASH=${TELEGRAM_HASH} \
+#     -e API_KEY=${BINANCE_KEY} \
+#     -e API_SECRET=${BINANCE_SECRET} \
+#     -e SESSION_PATH=/config/teletrader \
+#     -e STATE_PATH=/config/trader.json \
+#     -d wafflespeanut/teletrader
+
 echo 'Deploying Nginx proxy...'
 docker run --name nginx \
     --restart always \
