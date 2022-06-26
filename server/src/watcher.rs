@@ -68,6 +68,8 @@ struct PrivateLink {
     id: Uuid,
     expiry: Option<DateTime<Utc>>,
     rotation: TokenRotation,
+    #[serde(default)]
+    skip_sms: bool,
 }
 
 impl Default for PrivateLink {
@@ -77,6 +79,7 @@ impl Default for PrivateLink {
             id: Uuid::new_v4(),
             expiry: Some(rotation.expiry()),
             rotation,
+            skip_sms: false,
         }
     }
 }
@@ -374,7 +377,7 @@ impl PrivateWatcher {
             // SMS private path accesses over some interval.
             while let Ok((uuid, sub_path)) = self.access_receiver.try_recv() {
                 match self.config.get(&sub_path) {
-                    Some(l) if l.id == uuid => (),
+                    Some(l) if l.id == uuid && !l.skip_sms => (),
                     _ => continue,
                 }
 

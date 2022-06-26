@@ -55,6 +55,10 @@ lazy_static! {
 /// Sends the message to the given number.
 pub fn send(message: &str) {
     info!("[MESSAGE]\n{}\n", message);
+    if SMS_RECEIVER.is_none() {
+        return
+    }
+
     match send_using_aws(message) {
         Ok(true) => return,
         Ok(false) => (),

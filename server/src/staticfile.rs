@@ -91,11 +91,12 @@ impl<'a> Responder<'a> {
             match self.stream_().await {
                 Ok(r) => r,
                 Err(e) => {
-                    let reader = Cursor::new(state.body_5xx.clone());
                     error!("{:?}", e);
                     Response::new(StatusCode::INTERNAL_SERVER_ERROR.as_u16())
+                        .body(Cursor::new(state.body_5xx.clone()))
+                        .set_header(header::CONTENT_DISPOSITION.as_str(), "inline")
+                        .set_header(header::CONTENT_LENGTH.as_str(), state.body_5xx.len().to_string())
                         .set_header(header::CONTENT_TYPE.as_str(), mime::TEXT_HTML.as_ref())
-                        .body(reader)
                 }
             }
         }
@@ -134,8 +135,10 @@ impl<'a> Responder<'a> {
             None => Ok(self
                 .resp
                 .set_status(StatusCode::NOT_FOUND)
-                .set_header(header::CONTENT_TYPE.as_str(), mime::TEXT_HTML.as_ref())
-                .body(Cursor::new(self.state.body_4xx.clone()))),
+                .body(Cursor::new(self.state.body_4xx.clone()))
+                .set_header(header::CONTENT_DISPOSITION.as_str(), "inline")
+                .set_header(header::CONTENT_LENGTH.as_str(), self.state.body_4xx.len().to_string())
+                .set_header(header::CONTENT_TYPE.as_str(), mime::TEXT_HTML.as_ref())),
         }
     }
 
