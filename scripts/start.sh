@@ -34,6 +34,17 @@ docker run --name ace-away \
     --network waffles \
     -d wafflespeanut/ace-away
 
+echo 'Launching OI/Vol collector'
+docker pull wafflespeanut/oi-vol-perf
+docker run --name oi-vol \
+    --cpus="0.25" \
+    --memory="128m" \
+    --restart always \
+    -v /root/private/oi-vol-perf:/workdir \
+    -e DISCORD_WEBHOOK_URL=${DISCORD_WEBHOOK_URL} \
+    -d wafflespeanut/oi-vol-perf \
+    python main.py /workdir
+
 # echo 'Launching trader...'
 # docker pull wafflespeanut/teletrader
 # docker run --name trader \
