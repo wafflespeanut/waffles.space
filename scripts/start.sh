@@ -45,6 +45,20 @@ docker run --name oi-vol \
     -d wafflespeanut/oi-vol-perf \
     python main.py /workdir
 
+echo 'Launching portfolio manager'
+docker pull wafflespeanut/cryptofolio
+docker run --name cryptofolio \
+    --cpus="0.25" \
+    --memory="128m" \
+    --restart always \
+    --network waffles \
+    -v /root/config:/config \
+    -e ACCESS_CODE=${PORTFOLIO_SECRET} \
+    -e DATA=/config/portfolio \
+    -e GATE_IO_KEY=${GATE_IO_KEY} \
+    -e GATE_IO_SECRET=${GATE_IO_SECRET} \
+    -d wafflespeanut/cryptofolio
+
 # echo 'Launching trader...'
 # docker pull wafflespeanut/teletrader
 # docker run --name trader \
