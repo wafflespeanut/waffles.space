@@ -24,11 +24,11 @@ reclone AISH https://github.com/wafflespeanut/AISH
 reclone flight-2016 https://github.com/wafflespeanut/flight-2016
 
 echo 'Copying from docker images...'
-sudo rm -rf ascii-gen
+rm -rf ascii-gen ace-away
 docker pull wafflespeanut/rusty-sketch
-docker run -t --rm --entrypoint sh -v "/root/ascii-gen":/out wafflespeanut/rusty-sketch -c "cp -rf /source/* /out/"
+docker run -t --rm --entrypoint sh -v "/root/source/ascii-gen":/out wafflespeanut/rusty-sketch -c "cp -rf /source/* /out/"
 docker pull wafflespeanut/ace-away
-docker run -t --rm --entrypoint sh -v "/root/ace-away":/out wafflespeanut/ace-away -c "cp -rf /dist/* /out/"
+docker run -t --rm --entrypoint sh -v "/root/source/ace-away":/out wafflespeanut/ace-away -c "cp -rf /dist/* /out/"
 docker pull wafflespeanut/oi-vol-perf
 mkdir -p private/oi-vol-perf
 docker run -t --rm --entrypoint sh -v "/root/private/oi-vol-perf":/out wafflespeanut/oi-vol-perf -c "cp -rf /static/* /out/"
