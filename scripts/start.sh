@@ -34,44 +34,26 @@ docker run --name ace-away \
     --network waffles \
     -d wafflespeanut/ace-away
 
-# echo 'Launching OI/Vol collector'
-# docker pull wafflespeanut/oi-vol-perf
-# docker run --name oi-vol \
-#     --cpus="0.25" \
-#     --memory="128m" \
-#     --restart always \
-#     -v /root/private/oi-vol-perf:/workdir \
-#     -e DISCORD_WEBHOOK_URL=${DISCORD_WEBHOOK_URL} \
-#     -d wafflespeanut/oi-vol-perf \
-#     python main.py /workdir
-
-echo 'Launching portfolio manager'
-docker pull wafflespeanut/cryptofolio
-docker run --name cryptofolio \
-    --cpus="0.25" \
-    --memory="128m" \
-    --restart always \
-    --network waffles \
-    -v /root/config:/config \
-    -e ACCESS_CODE=${PORTFOLIO_SECRET} \
-    -e DATA=/config/portfolio \
-    -e GATE_IO_KEY=${GATE_IO_KEY} \
-    -e GATE_IO_SECRET=${GATE_IO_SECRET} \
-    -d wafflespeanut/cryptofolio
-
-# echo 'Launching trader...'
-# docker pull wafflespeanut/teletrader
-# docker run --name trader \
+# echo 'Launching portfolio manager'
+# docker pull wafflespeanut/cryptofolio
+# docker run --name cryptofolio \
 #     --restart always \
 #     --network waffles \
 #     -v /root/config:/config \
-#     -e API_ID=${TELEGRAM_ID} \
-#     -e API_HASH=${TELEGRAM_HASH} \
-#     -e API_KEY=${BINANCE_KEY} \
-#     -e API_SECRET=${BINANCE_SECRET} \
-#     -e SESSION_PATH=/config/teletrader \
-#     -e STATE_PATH=/config/trader.json \
-#     -d wafflespeanut/teletrader
+#     -e TELEGRAM_ADMIN=${TELEGRAM_ID} \
+#     -e TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN} \
+#     -e ACCESS_CODE=${PORTFOLIO_SECRET} \
+#     -e BYBIT_KEY=${BYBIT_KEY} \
+#     -e BYBIT_SECRET=${BYBIT_SECRET} \
+#     -e BINANCE_KEY=${BINANCE_KEY} \
+#     -e BINANCE_SECRET=${BINANCE_SECRET} \
+#     -e KUCOIN_KEY=${KUCOIN_KEY} \
+#     -e KUCOIN_SECRET=${KUCOIN_SECRET} \
+#     -e MEXC_KEY=${MEXC_KEY} \
+#     -e MEXC_SECRET=${MEXC_SECRET} \
+#     -e GATE_IO_KEY=${GATE_IO_KEY} \
+#     -e GATE_IO_SECRET=${GATE_IO_SECRET} \
+#     -d wafflespeanut/cryptofolio
 
 echo 'Deploying Nginx proxy...'
 docker run --name nginx \

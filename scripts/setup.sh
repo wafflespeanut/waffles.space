@@ -46,3 +46,4 @@ sudo systemctl enable /etc/systemd/system/boot.service
 sudo systemctl start boot.service
 
 rm -rf _site
+docker rmi $(docker images | grep "<none>" | awk '{print $3}');
