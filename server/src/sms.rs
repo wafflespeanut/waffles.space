@@ -1,5 +1,3 @@
-use http::header;
-use reqwest::Client;
 use rusoto_core::{request::HttpClient, Region, RusotoError};
 use rusoto_credential::EnvironmentProvider;
 use rusoto_sns::{MessageAttributeValue, PublishError, PublishInput, Sns, SnsClient};
@@ -11,19 +9,6 @@ lazy_static! {
     /// SMS receiver number (E.164 format).
     static ref SMS_RECEIVER: Option<String>
         = env::var("SMS_RECEIVER").ok();
-
-    /* Twilio */
-    /// Twilio account ID set in environment.
-    static ref TWILIO_ACCOUNT: Option<String>
-        = env::var("TWILIO_ACCOUNT").ok();
-    /// Twilio access token set in environment.
-    static ref TWILIO_TOKEN: Option<String>
-        = env::var("TWILIO_TOKEN").ok();
-    /// Twilio sender number.
-    static ref TWILIO_SENDER: Option<String>
-        = env::var("TWILIO_SENDER").ok();
-    static ref TWILIO_API_ENDPOINT: Option<String>
-        = TWILIO_ACCOUNT.as_ref().and_then(|a| Some(format!("https://api.twilio.com/2010-04-01/Accounts/{}/Messages.json", a)));
 
     /* AWS */
 
@@ -45,10 +30,6 @@ lazy_static! {
         });
         Some(h)
     };
-
-    /* Other */
-
-    static ref HTTP_CLIENT: Client = Client::new();
 }
 
 /// Sends the message to the given number.
@@ -62,12 +43,6 @@ pub async fn send(message: &str) {
         Ok(true) => return,
         Ok(false) => (),
         Err(e) => error!("Error sending message using AWS: {:?}", e),
-    }
-
-    match send_using_twilio(message).await {
-        Ok(true) => return,
-        Ok(false) => (),
-        Err(e) => error!("Error sending message using Twilio: {:?}", e),
     }
 
     error!("No supported SMS providers have been configured.");
@@ -92,44 +67,5 @@ async fn send_using_aws(message: &str) -> Result<bool, RusotoError<PublishError>
             ..Default::default()
         }).await?;
     info!("AWS response: {:?}", resp);
-    Ok(true)
-}
-
-/// Send a message using Twilio API.
-async fn send_using_twilio(message: &str) -> Result<bool, reqwest::Error> {
-    info!("Sending message using Twilio.");
-    let (sender, receiver, endpoint, account, token) = match (
-        TWILIO_SENDER.as_ref(),
-        SMS_RECEIVER.as_ref(),
-        TWILIO_API_ENDPOINT.as_ref(),
-        TWILIO_ACCOUNT.as_ref(),
-        TWILIO_TOKEN.as_ref(),
-    ) {
-        (Some(s), Some(r), Some(e), Some(a), Some(t)) => (s, r, e, a, t),
-        _ => {
-            info!("Missing environment variables for Twilio API.");
-            return Ok(false);
-        }
-    };
-
-    let mut params = HashMap::new();
-    params.insert("From", sender.as_str());
-    params.insert("To", receiver.as_str());
-    params.insert("Body", message);
-
-    let response = HTTP_CLIENT
-        .post(endpoint)
-        .header(
-            header::CONTENT_TYPE,
-            mime::APPLICATION_WWW_FORM_URLENCODED.as_ref(),
-        )
-        .basic_auth(account, Some(token))
-        .form(&params)
-        .send().await?;
-    
-    let status = response.status();
-    let json: serde_json::Value = response.json().await?;
-    info!("{}: {}", status, json);
-
     Ok(true)
 }

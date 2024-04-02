@@ -1,4 +1,5 @@
-FROM ekidd/rust-musl-builder:stable
+FROM rust:alpine
+RUN apk add --update musl-dev openssl-dev
 COPY . /home/rust/src
 WORKDIR /home/rust/src
 RUN cargo build --release
