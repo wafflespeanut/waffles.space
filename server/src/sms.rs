@@ -7,7 +7,6 @@ use rusoto_sns::{MessageAttributeValue, PublishError, PublishInput, Sns, SnsClie
 use std::collections::HashMap;
 use std::env;
 
-// FIXME: Quick cheap way of doing stuff! I know!
 lazy_static! {
     /// SMS receiver number (E.164 format).
     static ref SMS_RECEIVER: Option<String>
@@ -53,19 +52,19 @@ lazy_static! {
 }
 
 /// Sends the message to the given number.
-pub fn send(message: &str) {
+pub async fn send(message: &str) {
     info!("[MESSAGE]\n{}\n", message);
     if SMS_RECEIVER.is_none() {
-        return
+        return;
     }
 
-    match send_using_aws(message) {
+    match send_using_aws(message).await {
         Ok(true) => return,
         Ok(false) => (),
         Err(e) => error!("Error sending message using AWS: {:?}", e),
     }
 
-    match send_using_twilio(message) {
+    match send_using_twilio(message).await {
         Ok(true) => return,
         Ok(false) => (),
         Err(e) => error!("Error sending message using Twilio: {:?}", e),
@@ -75,7 +74,7 @@ pub fn send(message: &str) {
 }
 
 /// Sends a message using AWS SNS API.
-fn send_using_aws(message: &str) -> Result<bool, RusotoError<PublishError>> {
+async fn send_using_aws(message: &str) -> Result<bool, RusotoError<PublishError>> {
     info!("Sending message using AWS.");
     let (client, receiver) = match (AWS_CLIENT.as_ref(), SMS_RECEIVER.as_ref()) {
         (Some(c), Some(r)) => (c, r),
@@ -91,14 +90,13 @@ fn send_using_aws(message: &str) -> Result<bool, RusotoError<PublishError>> {
             phone_number: Some(receiver.clone()),
             message_attributes: AWS_MSG_ATTRS.clone(),
             ..Default::default()
-        })
-        .sync()?;
+        }).await?;
     info!("AWS response: {:?}", resp);
     Ok(true)
 }
 
 /// Send a message using Twilio API.
-fn send_using_twilio(message: &str) -> Result<bool, reqwest::Error> {
+async fn send_using_twilio(message: &str) -> Result<bool, reqwest::Error> {
     info!("Sending message using Twilio.");
     let (sender, receiver, endpoint, account, token) = match (
         TWILIO_SENDER.as_ref(),
@@ -119,7 +117,7 @@ fn send_using_twilio(message: &str) -> Result<bool, reqwest::Error> {
     params.insert("To", receiver.as_str());
     params.insert("Body", message);
 
-    let mut response = HTTP_CLIENT
+    let response = HTTP_CLIENT
         .post(endpoint)
         .header(
             header::CONTENT_TYPE,
@@ -127,10 +125,11 @@ fn send_using_twilio(message: &str) -> Result<bool, reqwest::Error> {
         )
         .basic_auth(account, Some(token))
         .form(&params)
-        .send()?;
-
-    let json: serde_json::Value = response.json()?;
-    info!("{}: {}", response.status(), json);
+        .send().await?;
+    
+    let status = response.status();
+    let json: serde_json::Value = response.json().await?;
+    info!("{}: {}", status, json);
 
     Ok(true)
 }

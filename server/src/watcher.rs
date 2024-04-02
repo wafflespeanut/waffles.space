@@ -87,7 +87,7 @@ impl Default for PrivateLink {
 impl PrivateLink {
     /// Get the hyphenated UUID of this link.
     fn get_token(&self) -> String {
-        self.id.to_hyphenated().to_string()
+        self.id.hyphenated().to_string()
     }
 
     /// Check if this link has expired. If it is, then change the UUID,
@@ -404,7 +404,7 @@ impl PrivateWatcher {
                     }
                 }
 
-                crate::sms::send(&msg);
+                async_std::task::block_on(crate::sms::send(&msg));
             }
         }
     }

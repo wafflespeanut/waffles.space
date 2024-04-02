@@ -1,10 +1,9 @@
 use async_std::fs::{self, File, Metadata};
 use async_std::io::BufReader;
 use futures::future::{BoxFuture, FutureExt};
-use futures::io::Cursor;
-use http::{header, StatusCode};
+use http::header;
 use httpdate::HttpDate;
-use tide::{Request, Response};
+use tide::{Body, Request, Response, ResponseBuilder, StatusCode};
 
 use std::io;
 use std::path::{Component, Path, PathBuf};
@@ -14,6 +13,7 @@ const DEFAULT_4XX_BODY: &[u8] = b"Oops! I can't find what you're looking for..."
 const DEFAULT_5XX_BODY: &[u8] = b"I'm broken, apparently." as &[_];
 
 /// Simple static file handler for Tide.
+#[derive(Clone)]
 pub struct StaticFile {
     // FIXME: These should be setters which also determine and set the MIME type.
     pub body_4xx: Vec<u8>,
@@ -64,7 +64,7 @@ pub struct Responder<'a> {
     actual_path: &'a str,
     state: &'a StaticFile,
     path: PathBuf,
-    resp: Response,
+    resp: ResponseBuilder,
     if_modified_since: Option<&'a str>,
     if_none_match: Option<&'a str>,
 }
@@ -72,15 +72,15 @@ pub struct Responder<'a> {
 impl<'a> Responder<'a> {
     /// Create an instance from an incoming request.
     pub fn from(req: &'a Request<StaticFile>) -> Self {
-        let actual_path = req.uri().path();
+        let actual_path = req.url().path();
         let state = req.state();
         Responder {
             actual_path,
             state: &state,
             path: state.get_path(actual_path),
-            resp: Response::new(StatusCode::OK.as_u16()),
-            if_none_match: req.header(header::IF_NONE_MATCH.as_str()),
-            if_modified_since: req.header(header::IF_MODIFIED_SINCE.as_str()),
+            resp: Response::builder(200),
+            if_none_match: req.header(header::IF_NONE_MATCH.as_str()).map(|s| s.as_str()),
+            if_modified_since: req.header(header::IF_MODIFIED_SINCE.as_str()).map(|s| s.as_str()),
         }
     }
 
@@ -92,11 +92,16 @@ impl<'a> Responder<'a> {
                 Ok(r) => r,
                 Err(e) => {
                     error!("{:?}", e);
-                    Response::new(StatusCode::INTERNAL_SERVER_ERROR.as_u16())
-                        .body(Cursor::new(state.body_5xx.clone()))
-                        .set_header(header::CONTENT_DISPOSITION.as_str(), "inline")
-                        .set_header(header::CONTENT_LENGTH.as_str(), state.body_5xx.len().to_string())
-                        .set_header(header::CONTENT_TYPE.as_str(), mime::TEXT_HTML.as_ref())
+                    let mut resp = Response::builder(500)
+                        .body(state.body_5xx.clone())
+                        .header(header::CONTENT_DISPOSITION.as_str(), "inline")
+                        .header(
+                            header::CONTENT_LENGTH.as_str(),
+                            state.body_5xx.len().to_string(),
+                        )
+                        .build();
+                    resp.set_content_type(http_types::mime::HTML);
+                    resp
                 }
             }
         }
@@ -109,14 +114,15 @@ impl<'a> Responder<'a> {
         if meta.is_some() && meta.as_ref().map(|m| !m.is_file()).unwrap_or(false) {
             // Redirect if path is a dir and URL doesn't end with "/"
             if !self.actual_path.ends_with("/") {
-                return Ok(self
+                let mut resp = self
                     .resp
-                    .set_status(StatusCode::MOVED_PERMANENTLY)
-                    .set_header(
+                    .header(
                         header::LOCATION.as_str(),
                         String::from(self.actual_path) + "/",
                     )
-                    .body(futures::io::empty()));
+                    .body(Body::empty()).build();
+                resp.set_status(StatusCode::MovedPermanently);
+                return Ok(resp);
             }
 
             let index = Path::new(self.actual_path).join("index.html");
@@ -132,13 +138,20 @@ impl<'a> Responder<'a> {
 
         match meta {
             Some(m) => Ok(self.stream_using_meta(m).await?),
-            None => Ok(self
-                .resp
-                .set_status(StatusCode::NOT_FOUND)
-                .body(Cursor::new(self.state.body_4xx.clone()))
-                .set_header(header::CONTENT_DISPOSITION.as_str(), "inline")
-                .set_header(header::CONTENT_LENGTH.as_str(), self.state.body_4xx.len().to_string())
-                .set_header(header::CONTENT_TYPE.as_str(), mime::TEXT_HTML.as_ref())),
+            None => {
+                let mut resp = self
+                    .resp
+                    .body(self.state.body_4xx.clone())
+                    .header(header::CONTENT_DISPOSITION.as_str(), "inline")
+                    .header(
+                        header::CONTENT_LENGTH.as_str(),
+                        self.state.body_4xx.len().to_string(),
+                    )
+                    .build();
+                resp.set_content_type(http_types::mime::HTML);
+                resp.set_status(StatusCode::NotFound);
+                Ok(resp)
+            }
         }
     }
 
@@ -157,12 +170,12 @@ impl<'a> Responder<'a> {
         let mime = mime_guess::from_path(&self.path).first_or_octet_stream();
         self.resp = self
             .resp
-            .set_header(
+            .header(
                 header::LAST_MODIFIED.as_str(),
                 httpdate::fmt_http_date(last_modified),
             )
-            .set_header(header::ETAG.as_str(), etag.as_str())
-            .set_header(header::CONTENT_DISPOSITION.as_str(), {
+            .header(header::ETAG.as_str(), etag.as_str())
+            .header(header::CONTENT_DISPOSITION.as_str(), {
                 let ty = match mime.type_() {
                     mime::IMAGE | mime::TEXT | mime::VIDEO => "inline",
                     _ => "attachment",
@@ -197,23 +210,23 @@ impl<'a> Responder<'a> {
         };
 
         if respond_cache {
-            return Ok(self
-                .resp
-                .set_status(StatusCode::NOT_MODIFIED)
-                .body(futures::io::empty()));
+            let mut resp = self.resp.body(Body::empty()).build();
+            resp.set_status(StatusCode::NotModified);
+            return Ok(resp);
         }
 
         // We're done with the checks. Stream file!
-        self.resp = self
-            .resp
-            .set_status(StatusCode::OK)
-            .set_header(header::CONTENT_LENGTH.as_str(), size.to_string());
+        let mut resp = self.resp.header(header::CONTENT_LENGTH.as_str(), size.to_string()).build();
+        resp.set_status(StatusCode::Ok);
+        resp.set_content_type(mime.as_ref());
 
         if size == 0 {
-            return Ok(self.resp.body(futures::io::empty()).set_mime(mime));
+            resp.set_body(Body::empty());
+            return Ok(resp);
         }
 
         let fd = BufReader::new(File::open(self.path).await?);
-        Ok(self.resp.body(fd).set_mime(mime))
+        resp.set_body(Body::from_reader(fd, Some(size as usize)));
+        Ok(resp)
     }
 }

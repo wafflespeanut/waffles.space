@@ -29,12 +29,12 @@ docker pull wafflespeanut/rusty-sketch
 docker run -t --rm --entrypoint sh -v "/root/source/ascii-gen":/out wafflespeanut/rusty-sketch -c "cp -rf /source/* /out/"
 docker pull wafflespeanut/ace-away
 docker run -t --rm --entrypoint sh -v "/root/source/ace-away":/out wafflespeanut/ace-away -c "cp -rf /dist/* /out/"
-docker pull wafflespeanut/oi-vol-perf
-mkdir -p private/oi-vol-perf
-docker run -t --rm --entrypoint sh -v "/root/private/oi-vol-perf":/out wafflespeanut/oi-vol-perf -c "cp -rf /static/* /out/"
-docker pull wafflespeanut/cryptofolio
-mkdir -p private/cryptofolio
-docker run -t --rm --entrypoint sh -v "/root/private/cryptofolio":/out wafflespeanut/cryptofolio -c "cp -rf /static/* /out/"
+# docker pull wafflespeanut/oi-vol-perf
+# mkdir -p private/oi-vol-perf
+# docker run -t --rm --entrypoint sh -v "/root/private/oi-vol-perf":/out wafflespeanut/oi-vol-perf -c "cp -rf /static/* /out/"
+# docker pull wafflespeanut/cryptofolio
+# mkdir -p private/cryptofolio
+# docker run -t --rm --entrypoint sh -v "/root/private/cryptofolio":/out wafflespeanut/cryptofolio -c "cp -rf /static/* /out/"
 
 echo 'Copying site config...'
 cp -r _site/source/* .

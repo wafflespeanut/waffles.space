@@ -5,28 +5,27 @@ authors = ["Ravi Shankar <wafflespeanut@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-async-std = "1.4"
-chrono = { version = "0.4", features = ["serde"] }
-crossbeam-channel = "0.4"
-env_logger = "0.7"
+async-std = { version = "1.6", features = ["attributes"] }
+async-trait = "0.1"
+chrono = { version = "0.4.30", features = ["serde"] }
+crossbeam-channel = "0.5"
+env_logger = "0.11"
 futures = "0.3"
-http = "0.1"
-http-service = "0.4"
-httpdate = "0.3"
+http = "1.1"
+httpdate = "1.0"
+http-types = "2.10"
 lazy_static = "1.4"
 log = "0.4"
 mime = "0.3"
-mime_guess = "2.0.1"
-notify = "4.0"
-percent-encoding = "2.1"
-reqwest = "0.9"
-runtime = "0.3.0-alpha.8"
-runtime-tokio = "0.3.0-alpha.6"
-rusoto_core = "0.42.0"
-rusoto_credential = "0.42.0"
-rusoto_sns = "0.42.0"
+mime_guess = "2.0"
+notify = "4"
+percent-encoding = "2.3"
+reqwest = { version = "0.12", features = ["json"] }
+rusoto_core = "0.48"
+rusoto_credential = "0.48"
+rusoto_sns = "0.48"
 serde = "1.0"
 serde_json = "1.0"
 serde_derive = "1.0"
-tide = "0.5"
-uuid = { version = "0.8", features = ["v4", "serde"] }
+tide = "0.16"
+uuid = { version = "1.8", features = ["v4", "serde"] }

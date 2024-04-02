@@ -1,11 +1,7 @@
 use crate::staticfile::{Responder, StaticFile};
 use crate::util;
 use crate::watcher::PrivateWatcher;
-use futures::future::BoxFuture;
-use tide::{
-    middleware::{Middleware, Next},
-    Request, Response, Server,
-};
+use tide::{Middleware, Next, Request, Response, Server};
 use uuid::Uuid;
 
 use crossbeam_channel::Sender;
@@ -28,14 +24,12 @@ struct PrivateMiddleware {
     sender: Sender<(Uuid, String)>,
 }
 
-impl<S> Middleware<S> for PrivateMiddleware
-where
-    S: 'static,
-{
-    fn handle<'a>(&'a self, req: Request<S>, next: Next<'a, S>) -> BoxFuture<'a, Response> {
-        let path = req.uri().path();
+#[async_trait::async_trait]
+impl<State: Clone + Send + Sync + 'static> Middleware<State> for PrivateMiddleware {
+    async fn handle(&self, req: Request<State>, next: Next<'_, State>) -> tide::Result {
+        let path = req.url().path();
         if !path.starts_with(PRIVATE_PATH_PREFIX) {
-            return next.run(req);
+            return Ok(next.run(req).await);
         }
 
         let mut path_iter = path.split("/");
@@ -49,13 +43,13 @@ where
             let _ = self.sender.send((uuid, sub_path.into()));
         }
 
-        next.run(req)
+        Ok(next.run(req).await)
     }
 }
 
-async fn fetch_file(req: Request<StaticFile>) -> Response {
+async fn fetch_file(req: Request<StaticFile>) -> Result<Response, tide::Error> {
     let responder = Responder::from(&req);
-    responder.stream().await
+    Ok(responder.stream().await)
 }
 
 pub async fn start() {
@@ -100,7 +94,7 @@ pub async fn start() {
     }
 
     let mut app = Server::with_state(static_file);
-    app.middleware(PrivateMiddleware { sender });
+    app.with(PrivateMiddleware { sender });
     app.at("/").get(fetch_file);
     app.at("/*").get(fetch_file);
     app.listen(&*DEFAULT_ADDRESS).await.expect("serving");
