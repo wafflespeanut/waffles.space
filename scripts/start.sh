@@ -20,9 +20,6 @@ docker run --name static \
     -e AWS_REGION=${AWS_REGION} \
     -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
     -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
-    -e TWILIO_ACCOUNT=${TWILIO_ACCOUNT} \
-    -e TWILIO_TOKEN=${TWILIO_TOKEN} \
-    -e TWILIO_SENDER=${TWILIO_SENDER} \
     -d wafflespeanut/static-server
 
 echo 'Launching ace game!'
