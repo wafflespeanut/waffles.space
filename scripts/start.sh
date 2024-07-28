@@ -16,10 +16,6 @@ docker run --name static \
     -e PRIVATE_SOURCE=/private \
     -e CONFIG=/config/static_server_config.json \
     -e LOG_LEVEL=info \
-    -e SMS_RECEIVER=${SMS_RECEIVER} \
-    -e AWS_REGION=${AWS_REGION} \
-    -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
-    -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
     -d wafflespeanut/static-server
 
 echo 'Launching ace game!'
@@ -30,6 +26,19 @@ docker run --name ace-away \
     --restart always \
     --network waffles \
     -d wafflespeanut/ace-away
+
+echo 'Launching onchain scanner...'
+docker pull wafflespeanut/onchain-scanner
+docker run --name scanner \
+    --restart always \
+    --network waffles \
+    -v /root/config:/config \
+    -e ADDR=localhost:3001 \
+    -e AUTH_KEY=${SCANNER_AUTH} \
+    -e AWS_ACCESS_KEY=${AWS_ACCESS_KEY=} \
+    -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
+    -e CONFIG=/config/scanner-config.json \
+    -d wafflespeanut/onchain-scanner
 
 echo 'Deploying Nginx proxy...'
 docker run --name nginx \
