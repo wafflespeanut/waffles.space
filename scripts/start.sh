@@ -27,18 +27,18 @@ docker run --name ace-away \
     --network waffles \
     -d wafflespeanut/ace-away
 
-echo 'Launching onchain scanner...'
-docker pull wafflespeanut/onchain-scanner
-docker run --name scanner \
-    --restart always \
-    --network waffles \
-    -v /root/config:/config \
-    -e ADDR=localhost:3001 \
-    -e AUTH_KEY=${SCANNER_AUTH} \
-    -e AWS_ACCESS_KEY=${AWS_ACCESS_KEY=} \
-    -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
-    -e CONFIG=/config/scanner-config.json \
-    -d wafflespeanut/onchain-scanner
+# echo 'Launching onchain scanner...'
+# docker pull wafflespeanut/onchain-scanner
+# docker run --name scanner \
+#     --restart always \
+#     --network waffles \
+#     -v /root/config:/config \
+#     -e ADDR=localhost:3001 \
+#     -e AUTH_KEY=${SCANNER_AUTH} \
+#     -e AWS_ACCESS_KEY=${AWS_ACCESS_KEY=} \
+#     -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
+#     -e CONFIG=/config/scanner-config.json \
+#     -d wafflespeanut/onchain-scanner
 
 echo 'Deploying Nginx proxy...'
 docker run --name nginx \
